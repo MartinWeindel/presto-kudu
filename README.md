@@ -2,7 +2,7 @@
 The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and deleting data in [Apache Kudu](https://kudu.apache.org/) 
 
 ## Compatibility
-The connector is compatible with Kudu 1.4.0 and 1.5.0
+The connector is compatible with Kudu version 1.4.0 and 1.5.0, and Presto versions >= 0.181
 
 ## Installation
 
@@ -51,8 +51,8 @@ Install Presto according to the documentation: https://prestodb.io/docs/current/
 
 * Start CLI:
   
-  ```
-  $ ./presto-cli --server localhost:8086 --catalog kudu --schema default
+  ```bash
+  ./presto-cli --server localhost:8086 --catalog kudu --schema default
   ```
   Replace the hostname, port and schema name with your own.
 
@@ -63,14 +63,14 @@ A Kudu table containing a dot is considered as a schema/table combination, e.g.
 Only Kudu table names in lower case are currently supported.
 
 Before using any tablets, it is needed to create the default schema, e.g.
-```
-create schema default;
+```sql
+CREATE SCHEMA default;
 ```
 
 ### Example
 - Create default schema if needed:
 ```sql
-create schema if not exists default;
+CREATE SCHEMA IF NOT EXISTS default;
 ```
 
 - Now you can use any Kudu table, if it is lower case and contains no dots.
@@ -93,7 +93,7 @@ Because of restrictions of Presto `CREATE TABLE` syntax, creating a Kudu table i
 is therefore a little bit cumbersome. (TODO: provide more details)
 - The table can be described using
 ```sql
-describe kudu.default.users;
+DESCRIBE kudu.default.users;
 ```
 You should get something like
 ```
