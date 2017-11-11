@@ -21,7 +21,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 
 
 public class NativeKuduClientSession implements KuduClientSession {
-    public static final String NULL_SCHEMA = "null_schema";
+    public static final String NULL_SCHEMA = "default";
     private final Logger log = Logger.get(getClass());
     private final KuduConnectorId connectorId;
     private final String tenantPrefix;
