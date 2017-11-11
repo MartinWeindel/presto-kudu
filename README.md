@@ -1,5 +1,8 @@
 # Presto-Kudu
-[Presto connector](https://prestodb.io/) for [Apache Kudu](https://kudu.apache.org/)
+The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and deleting data in [Apache Kudu](https://kudu.apache.org/) 
+
+## Compatibility
+The connector is compatible with Kudu 1.4.0 and 1.5.0
 
 ## Installation
 
@@ -49,9 +52,71 @@ Install Presto according to the documentation: https://prestodb.io/docs/current/
 * Start CLI:
   
   ```
-  $ ./presto --server localhost:8086 --catalog kudu --schema default
+  $ ./presto-cli --server localhost:8086 --catalog kudu --schema default
   ```
   Replace the hostname, port and schema name with your own.
 
+## Querying Data
+A Kudu table named `mytable` is available in Presto as table `kudu.default.mytable`.
+A Kudu table containing a dot is considered as a schema/table combination, e.g.
+`dev.mytable` is mapped to the Presto table `kudu.dev.mytable.
+Only Kudu table names in lower case are currently supported.
 
+Before using any tablets, it is needed to create the default schema, e.g.
+```
+create schema default;
+```
+
+### Example
+- Create default schema if needed:
+```sql
+create schema if not exists default;
+```
+
+- Now you can use any Kudu table, if it is lower case and contains no dots.
+- Alternatively you can create a users table with
+```sql
+CREATE TABLE users (
+  user_id int,
+  first_name varchar,
+  last_name varchar
+) WITH (
+ column_design = '{"user_id": {"key": true}}',
+ partition_design = '{"hash":[{"columns":["user_id"], "buckets": 2}]}',
+ num_replicas = 1
+); 
+```
+On creating a Kudu table you need to specify a lot of information about 
+the primary key, encoding, and compression of columns and hash or range partitioning,
+and the number of replicas. 
+Because of restrictions of Presto `CREATE TABLE` syntax, creating a Kudu table in Presto 
+is therefore a little bit cumbersome. (TODO: provide more details)
+- The table can be described using
+```sql
+describe kudu.default.users;
+```
+You should get something like
+```
+   Column   |  Type   |                               Extra                               | Comment 
+------------+---------+-------------------------------------------------------------------+---------
+ user_id    | integer | key, encoding=AUTO_ENCODING, compression=DEFAULT_COMPRESSION      |         
+ first_name | varchar | nullable, encoding=AUTO_ENCODING, compression=DEFAULT_COMPRESSION |         
+ last_name  | varchar | nullable, encoding=AUTO_ENCODING, compression=DEFAULT_COMPRESSION |         
+(3 rows)
+```
+
+- Insert some data with
+```sql
+INSERT INTO users VALUES (1, 'Donald', 'Duck'), (2, 'Mickey', 'Mouse');
+```
+
+- Select the inserted data
+```sql
+SELECT * FROM users;
+```
+ 
+
+## Data Types
+As far as possible, the connector supports all Kudu data types.
+TODO
 

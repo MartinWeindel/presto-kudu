@@ -36,7 +36,7 @@ import static java.util.Objects.requireNonNull;
  * CREATE TABLE foo (a VARCHAR, b INT)
  * WITH (
  * column_design = '{"a": {"key": true}, "b": {"encoding": "bitshuffle"}}',
- * partition_design = '{"hash":[{"columns":["a"]}]}',
+ * partition_design = '{"hash":[{"columns":["a"], "buckets": 2}]}',
  * num_replicas = 1
  * );
  */
