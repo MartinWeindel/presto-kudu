@@ -13,8 +13,9 @@ import static ml.littlebulb.presto.kudu.KuduQueryRunner.createKuduQueryRunner;
 import static io.airlift.tpch.TpchTable.ORDERS;
 
 /**
- * It is expected, that Kudu-Master und Kudu-Tablet are running on local machine.
- * E.g. use
+ * Kudu master server is expected to be running on localhost. At least one
+ * Kudu tablet server must be running, too.
+ * With Docker, use e.g.
  *   "docker run --rm -d --name apache-kudu --net=host usuresearch/apache-kudu"
  */
 public class TestKuduIntegrationSmokeTest extends AbstractTestIntegrationSmokeTest {
@@ -31,6 +32,10 @@ public class TestKuduIntegrationSmokeTest extends AbstractTestIntegrationSmokeTe
         kuduQueryRunner = (KuduQueryRunner) getQueryRunner();
     }
 
+    /**
+     * Overrides original implementation because of usage of 'extra' column.
+     * @throws Exception
+     */
     @Test
     @Override
     public void testDescribeTable() throws Exception {
