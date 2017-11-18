@@ -214,7 +214,7 @@ to set, i.e.
 | `key`                | `true` or `false` | if column belongs to primary key, default: `false` |
 | `nullable`           | `true` or `false` | if column is nullable, default: `true` for non-key columns, key columns must not be nullable |
 | `encoding` | "string value" | See Apache Kudu documentation: [Column encoding](https://kudu.apache.org/docs/schema_design.html#encoding) | 
-| `compression` | "string value" | See Apache Kudu documentation: [Column encoding](https://kudu.apache.org/docs/schema_design.html#compression) |
+| `compression` | "string value" | See Apache Kudu documentation: [Column compression](https://kudu.apache.org/docs/schema_design.html#compression) |
 
 Example:
 ```
