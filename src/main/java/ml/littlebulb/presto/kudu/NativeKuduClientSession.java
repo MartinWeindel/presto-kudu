@@ -314,9 +314,15 @@ public class NativeKuduClientSession implements KuduClientSession {
     }
 
     @Override
-    public KuduTable createTable(ConnectorTableMetadata tableMetadata) {
+    public KuduTable createTable(ConnectorTableMetadata tableMetadata, boolean ignoreExisting) {
         try {
             String rawName = toRawName(tableMetadata.getTable());
+            if (ignoreExisting) {
+                if (client.tableExists(rawName)) {
+                    return null;
+                }
+            }
+
             List<ColumnMetadata> columns = tableMetadata.getColumns();
             Map<String, Object> properties = tableMetadata.getProperties();
 
@@ -326,7 +332,6 @@ public class NativeKuduClientSession implements KuduClientSession {
         } catch (KuduException e) {
             throw new PrestoException(GENERIC_INTERNAL_ERROR, e);
         }
-
     }
 
     @Override

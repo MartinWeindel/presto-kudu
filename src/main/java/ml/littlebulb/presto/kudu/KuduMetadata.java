@@ -192,8 +192,8 @@ public class KuduMetadata implements ConnectorMetadata {
     }
 
     @Override
-    public void createTable(ConnectorSession session, ConnectorTableMetadata tableMetadata) {
-        clientSession.createTable(tableMetadata);
+    public void createTable(ConnectorSession session, ConnectorTableMetadata tableMetadata, boolean ignoreExisting) {
+        clientSession.createTable(tableMetadata, ignoreExisting);
     }
 
     @Override
@@ -273,7 +273,7 @@ public class KuduMetadata implements ConnectorMetadata {
             finalTableMetadata = new ConnectorTableMetadata(tableMetadata.getTable(),
                     finalColumns, finalProperties, tableMetadata.getComment());
         }
-        KuduTable table = clientSession.createTable(finalTableMetadata);
+        KuduTable table = clientSession.createTable(finalTableMetadata, false);
 
         Schema schema = table.getSchema();
 

@@ -38,7 +38,7 @@ public interface KuduClientSession {
 
     void renameTable(SchemaTableName schemaTableName, SchemaTableName newSchemaTableName);
 
-    KuduTable createTable(ConnectorTableMetadata tableMetadata);
+    KuduTable createTable(ConnectorTableMetadata tableMetadata, boolean ignoreExisting);
 
     void addColumn(SchemaTableName schemaTableName, ColumnMetadata column);
 

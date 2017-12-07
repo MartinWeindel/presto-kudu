@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import io.airlift.slice.Slice;
 import org.apache.kudu.client.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -130,6 +131,11 @@ public class KuduRecordSink implements RecordSink {
     @Override
     public void appendDouble(double value) {
         rowNextColumn().addDouble(field, value);
+    }
+
+    @Override
+    public void appendBigDecimal(BigDecimal value) {
+        throw new IllegalStateException("BigDecimal not supported in Kudu");
     }
 
     @Override

@@ -56,11 +56,6 @@ public class KuduUpdatablePageSource implements UpdatablePageSource {
     }
 
     @Override
-    public long getTotalBytes() {
-        return inner.getTotalBytes();
-    }
-
-    @Override
     public long getCompletedBytes() {
         return inner.getCompletedBytes();
     }
