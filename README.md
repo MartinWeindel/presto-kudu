@@ -2,7 +2,9 @@
 The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and deleting data in [Apache Kudu](https://kudu.apache.org/) 
 
 ## Compatibility
-The connector is compatible with Kudu version 1.4.0 and 1.5.0, and Presto versions >= 0.181
+The connector is compatible with Kudu version 1.4.0 and 1.5.0, and Presto version 0.189.
+Presto version >= 0.190 is not yet supported. 
+Support for older Presto versions see [release history](https://github.com/MartinWeindel/presto-kudu/wiki/ReleaseHistory)
 
 ## Installation
 
@@ -264,12 +266,15 @@ Creates a range partition on the column "event".
   other Kudu clients for this case.
 
 ## Build
-The Presto-Kudu connector is a standard Maven project. Simply run the following 
-command from the project root directory:
+The Presto-Kudu connector is a standard Maven project.
+Under Linux, simply run the following command from the project root directory:
 
 ```bash
 mvn -DskipTests clean package
 ```
+
+Building the package under Windows is currently not supported, as the maven-presto-plugin
+has an open issue with Windows.
 
 To run the build with tests, it is assumed that Kudu master server 
 (and at least one Kudu tablet server) runs on localhost.
