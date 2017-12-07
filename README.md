@@ -4,7 +4,7 @@ The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and
 ## Compatibility
 The connector is compatible with Kudu version 1.4.0 and 1.5.0, and Presto version 0.189.
 Presto version >= 0.190 is not yet supported. 
-Support for older Presto versions see [release history](https://github.com/MartinWeindel/presto-kudu/wiki/ReleaseHistory)
+Support for older Presto versions see [release history](https://github.com/MartinWeindel/presto-kudu/wiki/Release-History)
 
 ## Installation
 
