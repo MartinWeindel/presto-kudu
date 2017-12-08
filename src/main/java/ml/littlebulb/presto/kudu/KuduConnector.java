@@ -41,21 +41,21 @@ public class KuduConnector implements Connector {
     private final ConnectorRecordSetProvider recordSetProvider;
     private final ConnectorPageSourceProvider pageSourceProvider;
     private final KuduTableProperties tableProperties;
-    private final ConnectorRecordSinkProvider recordSinkProvider;
+    private final ConnectorPageSinkProvider pageSinkProvider;
 
     @Inject
     public KuduConnector(LifeCycleManager lifeCycleManager, KuduMetadata metadata,
                          ConnectorSplitManager splitManager, ConnectorRecordSetProvider recordSetProvider,
                          KuduTableProperties tableProperties,
                          ConnectorPageSourceProvider pageSourceProvider,
-                         ConnectorRecordSinkProvider recordSinkProvider) {
+                         ConnectorPageSinkProvider pageSinkProvider) {
         this.lifeCycleManager = requireNonNull(lifeCycleManager, "lifeCycleManager is null");
         this.metadata = requireNonNull(metadata, "metadata is null");
         this.splitManager = requireNonNull(splitManager, "splitManager is null");
         this.recordSetProvider = requireNonNull(recordSetProvider, "recordSetProvider is null");
         this.pageSourceProvider = requireNonNull(pageSourceProvider, "pageSourceProvider is null");
         this.tableProperties = requireNonNull(tableProperties, "tableProperties is null");
-        this.recordSinkProvider = requireNonNull(recordSinkProvider, "recordSinkProvider is null");
+        this.pageSinkProvider = requireNonNull(pageSinkProvider, "pageSinkProvider is null");
     }
 
     @Override
@@ -86,8 +86,8 @@ public class KuduConnector implements Connector {
     }
 
     @Override
-    public ConnectorRecordSinkProvider getRecordSinkProvider() {
-        return recordSinkProvider;
+    public ConnectorPageSinkProvider getPageSinkProvider() {
+        return pageSinkProvider;
     }
 
     @Override

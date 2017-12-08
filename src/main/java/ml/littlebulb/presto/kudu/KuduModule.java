@@ -54,7 +54,7 @@ public class KuduModule implements Module {
                 .in(Scopes.SINGLETON);
         binder.bind(ConnectorPageSourceProvider.class).to(KuduPageSourceProvider.class)
                 .in(Scopes.SINGLETON);
-        binder.bind(ConnectorRecordSinkProvider.class).to(KuduRecordSinkProvider.class).in(Scopes.SINGLETON);
+        binder.bind(ConnectorPageSinkProvider.class).to(KuduPageSinkProvider.class).in(Scopes.SINGLETON);
         binder.bind(KuduHandleResolver.class).in(Scopes.SINGLETON);
         binder.bind(KuduRecordSetProvider.class).in(Scopes.SINGLETON);
         configBinder(binder).bindConfig(KuduClientConfig.class);
