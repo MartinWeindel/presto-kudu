@@ -2,9 +2,7 @@
 The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and deleting data in [Apache Kudu](https://kudu.apache.org/) 
 
 ## Compatibility
-The connector is compatible with Kudu version 1.4.0 and 1.5.0, and Presto version 0.189.
-
-*Please note*: Presto versions >= 0.190 is not yet supported because of incompatible changes in SPI. 
+The connector is compatible with Kudu version 1.4.0 and 1.5.0, and Presto version 0.190.
 
 Support for older Presto versions see [release history](https://github.com/MartinWeindel/presto-kudu/wiki/Release-History)
 
@@ -19,8 +17,9 @@ Install Presto according to the documentation: https://prestodb.io/docs/current/
 [Download current release](https://github.com/MartinWeindel/presto-kudu/wiki/Download)
 
 ### Configuring Apache Kudu connector
-* Create a folder named `kudu` at `$PRESTO_HOME$/plugin`
-* Extract the content of `presto-kudu-xxx.zip` to this folder
+* Go to the directory `$PRESTO_HOME$/plugin`
+* Extract the content of `presto-kudu-XXX.zip` to this folder
+* Rename the extracted folder `presto-kudu-XXX` to `kudu`
 * Create a file name `kudu.properties` in `$PRESTO_HOME/etc/catalog/`: 
   ```
   connector.name=kudu
