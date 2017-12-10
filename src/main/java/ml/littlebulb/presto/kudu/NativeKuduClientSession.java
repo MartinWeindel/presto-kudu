@@ -131,7 +131,7 @@ public class NativeKuduClientSession implements KuduClientSession {
     public List<SchemaTableName> listTables(String schemaNameOrNull) {
         final int offset = tenantPrefix.length();
         final String prefix;
-        if (schemaNameOrNull == null) {
+        if (schemaNameOrNull == null || schemaNameOrNull.equals(NULL_SCHEMA)) {
             prefix = tenantPrefix;
         } else {
             prefix = tenantPrefix + schemaNameOrNull + ".";
