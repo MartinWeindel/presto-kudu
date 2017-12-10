@@ -281,7 +281,7 @@ To run the build with tests, it is assumed that Kudu master server
 (and at least one Kudu tablet server) runs on localhost.
 If you have Docker installed on your machine, you can use following steps:
 ```bash
-docker run --rm -d --name apache-kudu --net=host usuresearch/apache-kudu:1.5.0
+docker run --rm -d --name apache-kudu --net=host usuresearch/apache-kudu:1.6.0
 mvn clean package
 docker stop apache-kudu
 ```
