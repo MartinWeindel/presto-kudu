@@ -16,7 +16,7 @@ import static io.airlift.tpch.TpchTable.ORDERS;
  * Kudu master server is expected to be running on localhost. At least one
  * Kudu tablet server must be running, too.
  * With Docker, use e.g.
- *   "docker run --rm -d --name apache-kudu --net=host usuresearch/apache-kudu"
+ *   "docker run --rm -d --name apache-kudu --net=host usuresearch/kudu-docker-slim:release-v1.6.0-2"
  */
 public class TestKuduIntegrationSmokeTest extends AbstractTestIntegrationSmokeTest {
     private KuduQueryRunner kuduQueryRunner;
@@ -26,20 +26,17 @@ public class TestKuduIntegrationSmokeTest extends AbstractTestIntegrationSmokeTe
     }
 
     @BeforeClass
-    public void setUp()
-            throws Exception {
-
+    public void setUp() {
         kuduQueryRunner = (KuduQueryRunner) getQueryRunner();
     }
 
     /**
      * Overrides original implementation because of usage of 'extra' column.
-     * @throws Exception
      */
     @Test
     @Override
-    public void testDescribeTable() throws Exception {
-        MaterializedResult actualColumns = this.computeActual("DESC ORDERS").toJdbcTypes();
+    public void testDescribeTable() {
+        MaterializedResult actualColumns = this.computeActual("DESC ORDERS").toTestTypes();
         MaterializedResult.Builder builder = MaterializedResult.resultBuilder(this.getQueryRunner().getDefaultSession(), VarcharType.VARCHAR, VarcharType.VARCHAR, VarcharType.VARCHAR, VarcharType.VARCHAR);
         for (MaterializedRow row: actualColumns.getMaterializedRows()) {
             builder.row(row.getField(0), row.getField(1), "", "");

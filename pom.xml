@@ -22,13 +22,13 @@
   <groupId>ml.littlebulb.presto.kudu</groupId>
   <artifactId>presto-kudu-1.6</artifactId>
   <name>Kudu Connector for Presto</name>
-  <version>0.190.2-SNAPSHOT</version>
+  <version>0.193.1-SNAPSHOT</version>
   <packaging>presto-plugin</packaging>
 
   <properties>
-    <presto.version>0.190</presto.version>
+    <presto.version>0.193</presto.version>
     <kudu.version>1.6.0</kudu.version>
-    <dep.airlift.version>0.158</dep.airlift.version>
+    <dep.airlift.version>0.163</dep.airlift.version>
     <dep.testng.version>6.10</dep.testng.version>
     <dep.slice.version>0.32</dep.slice.version>
   </properties>
