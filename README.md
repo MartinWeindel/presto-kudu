@@ -2,7 +2,14 @@
 The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and deleting data in [Apache Kudu](https://kudu.apache.org/) 
 
 ## Compatibility
-The connector is compatible with Kudu version 1.4.0 and 1.5.0, and Presto version 0.190.
+
+| Version | Compatibility | Details       |
+| ------- | --------------| ------------- |
+| Apache Kudu 1.6.0 | yes | tested  |
+| Apache Kudu 1.5.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.6.0 |
+| Apache Kudu 1.4.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.6.0 |
+|  |  | | |
+| Presto 0.193 | yes | tested |
 
 Support for older Presto versions see [release history](https://github.com/MartinWeindel/presto-kudu/wiki/Release-History)
 
@@ -133,7 +140,6 @@ The data types of Presto and Kudu are mapped as far as possible:
 | `BIGINT` | `INT64` | |
 | `REAL` | `FLOAT` | |
 | `DOUBLE` | `DOUBLE` | |
-| `REAL` | `FLOAT` | |
 | `VARCHAR` | `STRING` | see note 1 |
 | `VARBINARY` | `BINARY` | see note 1 |
 | `TIMESTAMP` | `UNIXTIME_MICROS` | µs resolution in Kudu column is reduced to ms resolution |
@@ -281,7 +287,7 @@ To run the build with tests, it is assumed that Kudu master server
 (and at least one Kudu tablet server) runs on localhost.
 If you have Docker installed on your machine, you can use following steps:
 ```bash
-docker run --rm -d --name apache-kudu --net=host usuresearch/kudu-docker-slim:release-v1.5.0-1
+docker run --rm -d --name apache-kudu --net=host usuresearch/kudu-docker-slim:release-v1.6.0-2
 mvn clean package
 docker stop apache-kudu
 ```
