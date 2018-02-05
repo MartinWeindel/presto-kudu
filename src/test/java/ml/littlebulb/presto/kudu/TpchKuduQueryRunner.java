@@ -29,25 +29,26 @@ import static com.facebook.presto.tpch.TpchMetadata.TINY_SCHEMA_NAME;
 import static io.airlift.testing.Closeables.closeAllSuppress;
 import static java.util.Locale.ENGLISH;
 
-public class KuduQueryRunner
+public class TpchKuduQueryRunner
         extends DistributedQueryRunner {
     private static final String TPCH_SCHEMA = "tpch";
+    private static final String RANGE_PARTITIONING_SCHEMA = "range_partitioning_test";
 
-    private KuduQueryRunner(Session session, int workers)
+    private TpchKuduQueryRunner(Session session, int workers)
             throws Exception {
         super(session, workers);
     }
 
-    public static KuduQueryRunner createKuduQueryRunner(TpchTable<?>... tables)
+    public static TpchKuduQueryRunner createKuduQueryRunner(TpchTable<?>... tables)
             throws Exception {
         return createKuduQueryRunner(ImmutableList.copyOf(tables));
     }
 
-    public static KuduQueryRunner createKuduQueryRunner(Iterable<TpchTable<?>> tables)
+    public static TpchKuduQueryRunner createKuduQueryRunner(Iterable<TpchTable<?>> tables)
             throws Exception {
-        KuduQueryRunner queryRunner = null;
+        TpchKuduQueryRunner queryRunner = null;
         try {
-            queryRunner = new KuduQueryRunner(createSession(), 3);
+            queryRunner = new TpchKuduQueryRunner(createSession(), 3);
 
             queryRunner.installPlugin(new TpchPlugin());
             queryRunner.createCatalog("tpch", "tpch");

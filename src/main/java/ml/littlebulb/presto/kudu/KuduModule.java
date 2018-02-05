@@ -18,11 +18,15 @@
 package ml.littlebulb.presto.kudu;
 
 import com.facebook.presto.spi.connector.*;
+import com.facebook.presto.spi.procedure.Procedure;
 import com.facebook.presto.spi.type.TypeManager;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
+import com.google.inject.multibindings.Multibinder;
+import com.google.inject.multibindings.ProvidesIntoSet;
+import ml.littlebulb.presto.kudu.procedures.RangePartitionProcedures;
 import ml.littlebulb.presto.kudu.properties.KuduTableProperties;
 import org.apache.kudu.client.KuduClient;
 
@@ -58,8 +62,30 @@ public class KuduModule implements Module {
         binder.bind(KuduHandleResolver.class).in(Scopes.SINGLETON);
         binder.bind(KuduRecordSetProvider.class).in(Scopes.SINGLETON);
         configBinder(binder).bindConfig(KuduClientConfig.class);
+
+        Multibinder.newSetBinder(binder, Procedure.class);
+
+        binder.bind(RangePartitionProcedures.class).in(Scopes.SINGLETON);
     }
 
+    @ProvidesIntoSet
+    public static Procedure getCreateRangePartitionProcedure(RangePartitionProcedures procedures)
+    {
+        return procedures.getCreatePartitionProcedure();
+    }
+/*
+    @ProvidesIntoSet
+    public static Procedure getDeleteRangePartitionProcedure(RangePartitionProcedures procedures)
+    {
+        return procedure.getProcedure();
+    }
+
+    @ProvidesIntoSet
+    public static Procedure getListRangePartitionsProcedure(RangePartitionProcedures procedures)
+    {
+        return procedure.getProcedure();
+    }
+*/
     @Singleton
     @Provides
     public static KuduClientSession createKuduClientSession(

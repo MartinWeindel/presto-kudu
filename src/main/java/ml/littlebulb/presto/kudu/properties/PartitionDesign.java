@@ -3,22 +3,22 @@ package ml.littlebulb.presto.kudu.properties;
 import java.util.List;
 
 public class PartitionDesign {
-    private List<HashPartition> hash;
-    private RangePartition range;
+    private List<HashPartitionDefinition> hash;
+    private RangePartitionDefinition range;
 
-    public List<HashPartition> getHash() {
+    public List<HashPartitionDefinition> getHash() {
         return hash;
     }
 
-    public void setHash(List<HashPartition> hash) {
+    public void setHash(List<HashPartitionDefinition> hash) {
         this.hash = hash;
     }
 
-    public RangePartition getRange() {
+    public RangePartitionDefinition getRange() {
         return range;
     }
 
-    public void setRange(RangePartition range) {
+    public void setRange(RangePartitionDefinition range) {
         this.range = range;
     }
 }

@@ -9,7 +9,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static ml.littlebulb.presto.kudu.KuduQueryRunner.createKuduQueryRunner;
+import static ml.littlebulb.presto.kudu.TpchKuduQueryRunner.createKuduQueryRunner;
 import static io.airlift.tpch.TpchTable.ORDERS;
 
 /**
@@ -19,7 +19,7 @@ import static io.airlift.tpch.TpchTable.ORDERS;
  *   "docker run --rm -d --name apache-kudu --net=host usuresearch/kudu-docker-slim:release-v1.6.0-2"
  */
 public class TestKuduIntegrationSmokeTest extends AbstractTestIntegrationSmokeTest {
-    private KuduQueryRunner kuduQueryRunner;
+    private TpchKuduQueryRunner kuduQueryRunner;
 
     public TestKuduIntegrationSmokeTest() {
         super(() -> createKuduQueryRunner(ORDERS));
@@ -27,7 +27,7 @@ public class TestKuduIntegrationSmokeTest extends AbstractTestIntegrationSmokeTe
 
     @BeforeClass
     public void setUp() {
-        kuduQueryRunner = (KuduQueryRunner) getQueryRunner();
+        kuduQueryRunner = (TpchKuduQueryRunner) getQueryRunner();
     }
 
     /**

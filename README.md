@@ -182,6 +182,7 @@ a `DATE` column is converted to `STRING`
 | `ALTER TABLE ... DROP COLUMN ...` | [x] | if not part of primary key |
 | `SHOW SCHEMAS` | [x] | |
 | `SHOW TABLES` | [x] | |
+| `SHOW CREATE TABLE` | [x] | |
 | `SHOW COLUMNS FROM` | [x] | |
 | `DESCRIBE` | [x] | same as `SHOW COLUMNS FROM`|
 
@@ -271,6 +272,7 @@ Creates a range partition on the column "event".
   is created in Kudu when using this connector 
 - Creating tables with range partitioning is incomplete. You have to use
   other Kudu clients for this case.
+- Using secured Kudu cluster has not been tested.
 
 ## Build
 The Presto-Kudu connector is a standard Maven project.
@@ -280,8 +282,8 @@ Under Linux, simply run the following command from the project root directory:
 mvn -DskipTests clean package
 ```
 
-Building the package under Windows is currently not supported, as the maven-presto-plugin
-has an open issue with Windows.
+Building the package under Windows is currently not supported, as the maven plugin 
+`maven-presto-plugin` has an open issue with Windows.
 
 To run the build with tests, it is assumed that Kudu master server 
 (and at least one Kudu tablet server) runs on localhost.

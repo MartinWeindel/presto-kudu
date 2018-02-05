@@ -1,15 +1,22 @@
 package ml.littlebulb.presto.kudu.properties;
 
-import java.util.List;
-
 public class RangePartition {
-    private List<String> columns;
+    private RangeBoundValue lower;
+    private RangeBoundValue upper;
 
-    public List<String> getColumns() {
-        return columns;
+    public RangeBoundValue getLower() {
+        return lower;
     }
 
-    public void setColumns(List<String> columns) {
-        this.columns = columns;
+    public void setLower(RangeBoundValue lower) {
+        this.lower = lower;
+    }
+
+    public RangeBoundValue getUpper() {
+        return upper;
+    }
+
+    public void setUpper(RangeBoundValue upper) {
+        this.upper = upper;
     }
 }

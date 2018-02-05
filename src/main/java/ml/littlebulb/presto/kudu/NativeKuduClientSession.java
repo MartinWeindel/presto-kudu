@@ -327,7 +327,7 @@ public class NativeKuduClientSession implements KuduClientSession {
             Map<String, Object> properties = tableMetadata.getProperties();
 
             Schema schema = buildSchema(columns, properties);
-            CreateTableOptions options = buildCreateTableOptions(properties);
+            CreateTableOptions options = buildCreateTableOptions(schema, properties);
             return client.createTable(rawName, schema, options);
         } catch (KuduException e) {
             throw new PrestoException(GENERIC_INTERNAL_ERROR, e);
@@ -417,22 +417,33 @@ public class NativeKuduClientSession implements KuduClientSession {
         }
     }
 
-    private CreateTableOptions buildCreateTableOptions(Map<String, Object> properties) {
+    private CreateTableOptions buildCreateTableOptions(Schema schema, Map<String, Object> properties) {
         CreateTableOptions options = new CreateTableOptions();
 
+        RangePartitionDefinition rangePartitionDefinition = null;
         Optional<PartitionDesign> optPartitionDesign = KuduTableProperties.getPartitionDesign(properties);
         if (optPartitionDesign.isPresent()) {
             PartitionDesign partitionDesign = optPartitionDesign.get();
             if (partitionDesign.getHash() != null) {
-                for (HashPartition partition : partitionDesign.getHash()) {
+                for (HashPartitionDefinition partition : partitionDesign.getHash()) {
                     options.addHashPartitions(partition.getColumns(), partition.getBuckets());
                 }
             }
             if (partitionDesign.getRange() != null) {
-                RangePartition range = partitionDesign.getRange();
-                options.setRangePartitionColumns(range.getColumns());
+                rangePartitionDefinition = partitionDesign.getRange();
+                options.setRangePartitionColumns(rangePartitionDefinition.getColumns());
             }
         }
+
+        List<RangePartition> rangePartitions = KuduTableProperties.getRangePartitions(properties);
+        if (rangePartitionDefinition != null && !rangePartitions.isEmpty()) {
+            for (RangePartition rangePartition: rangePartitions) {
+                PartialRow lower = KuduTableProperties.toRangeBoundToPartialRow(schema, rangePartitionDefinition, rangePartition.getLower());
+                PartialRow upper = KuduTableProperties.toRangeBoundToPartialRow(schema, rangePartitionDefinition, rangePartition.getUpper());
+                options.addRangePartition(lower, upper);
+            }
+        }
+
 
         Optional<Integer> numReplicas = KuduTableProperties.getNumReplicas(properties);
         numReplicas.ifPresent(options::setNumReplicas);
