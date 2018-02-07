@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.facebook.presto.spi.StandardErrorCode.GENERIC_INTERNAL_ERROR;
+import static com.facebook.presto.spi.StandardErrorCode.QUERY_REJECTED;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 
@@ -366,6 +367,50 @@ public class NativeKuduClientSession implements KuduClientSession {
             AlterTableOptions alterOptions = new AlterTableOptions();
             alterOptions.renameColumn(oldName, newName);
             client.alterTable(rawName, alterOptions);
+        } catch (KuduException e) {
+            throw new PrestoException(GENERIC_INTERNAL_ERROR, e);
+        }
+    }
+
+    private static enum RangePartitionChange {
+        ADD, DROP
+    };
+
+    @Override
+    public void addRangePartition(SchemaTableName schemaTableName, RangePartition rangePartition) {
+        changeRangePartition(schemaTableName, rangePartition, RangePartitionChange.ADD);
+    }
+
+    @Override
+    public void dropRangePartition(SchemaTableName schemaTableName, RangePartition rangePartition) {
+        changeRangePartition(schemaTableName, rangePartition, RangePartitionChange.DROP);
+    }
+
+    private void changeRangePartition(SchemaTableName schemaTableName, RangePartition rangePartition,
+                                      RangePartitionChange change) {
+        try {
+            String rawName = toRawName(schemaTableName);
+            KuduTable table = client.openTable(rawName);
+            Schema schema = table.getSchema();
+            PartitionDesign design = KuduTableProperties.getPartitionDesign(table);
+            RangePartitionDefinition definition = design.getRange();
+            if (definition == null) {
+                throw new PrestoException(QUERY_REJECTED, "Table " + schemaTableName + " has no range partition");
+            }
+            PartialRow lowerBound = KuduTableProperties.toRangeBoundToPartialRow(schema, definition, rangePartition.getLower());
+            PartialRow upperBound = KuduTableProperties.toRangeBoundToPartialRow(schema, definition, rangePartition.getUpper());
+            AlterTableOptions alterOptions = new AlterTableOptions();
+            switch (change) {
+                case ADD:
+                    alterOptions.addRangePartition(lowerBound, upperBound);
+                    break;
+                case DROP:
+                    alterOptions.dropRangePartition(lowerBound, upperBound);
+                    break;
+            }
+            client.alterTable(rawName, alterOptions);
+        } catch (PrestoException e) {
+            throw e;
         } catch (KuduException e) {
             throw new PrestoException(GENERIC_INTERNAL_ERROR, e);
         }

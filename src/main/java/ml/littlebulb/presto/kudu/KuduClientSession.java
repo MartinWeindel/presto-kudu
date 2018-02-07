@@ -3,6 +3,7 @@ package ml.littlebulb.presto.kudu;
 import com.facebook.presto.spi.ColumnMetadata;
 import com.facebook.presto.spi.ConnectorTableMetadata;
 import com.facebook.presto.spi.SchemaTableName;
+import ml.littlebulb.presto.kudu.properties.RangePartition;
 import org.apache.kudu.Schema;
 import org.apache.kudu.client.KuduScanner;
 import org.apache.kudu.client.KuduSession;
@@ -45,4 +46,8 @@ public interface KuduClientSession {
     void dropColumn(SchemaTableName schemaTableName, String name);
 
     void renameColumn(SchemaTableName schemaTableName, String oldName, String newName);
+
+    void addRangePartition(SchemaTableName schemaTableName, RangePartition rangePartition);
+
+    void dropRangePartition(SchemaTableName schemaTableName, RangePartition rangePartition);
 }

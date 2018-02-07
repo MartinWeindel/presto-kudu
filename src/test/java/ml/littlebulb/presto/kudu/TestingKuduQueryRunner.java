@@ -31,7 +31,7 @@ import static java.util.Locale.ENGLISH;
 
 public class TestingKuduQueryRunner
         extends DistributedQueryRunner {
-    private static final String TESTING_SCHEMA = "testing";
+    public static final String TESTING_SCHEMA = "testing";
 
     private TestingKuduQueryRunner(Session session, int workers)
             throws Exception {

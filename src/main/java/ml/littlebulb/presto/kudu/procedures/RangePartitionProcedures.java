@@ -1,10 +1,14 @@
 package ml.littlebulb.presto.kudu.procedures;
 
+import com.facebook.presto.spi.SchemaTableName;
 import com.facebook.presto.spi.block.Block;
 import com.facebook.presto.spi.procedure.Procedure;
 import com.facebook.presto.spi.procedure.Procedure.Argument;
 import com.google.common.collect.ImmutableList;
 import ml.littlebulb.presto.kudu.KuduClientSession;
+import ml.littlebulb.presto.kudu.properties.KuduTableProperties;
+import ml.littlebulb.presto.kudu.properties.RangeBoundValue;
+import ml.littlebulb.presto.kudu.properties.RangePartition;
 import org.apache.kudu.client.PartialRow;
 
 import javax.inject.Inject;
@@ -17,10 +21,10 @@ import static com.facebook.presto.spi.type.StandardTypes.VARCHAR;
 import static java.util.Objects.requireNonNull;
 
 public class RangePartitionProcedures {
-    private static final MethodHandle CREATE = methodHandle(RangePartitionProcedures.class, "createRangePartition",
-            String.class, String.class, String.class, String.class);
-    private static final MethodHandle DELETE = methodHandle(RangePartitionProcedures.class, "deleteRangePartition",
-            String.class, String.class, String.class, String.class);
+    private static final MethodHandle ADD = methodHandle(RangePartitionProcedures.class, "addRangePartition",
+            String.class, String.class, String.class);
+    private static final MethodHandle DROP = methodHandle(RangePartitionProcedures.class, "dropRangePartition",
+            String.class, String.class, String.class);
 
     private final KuduClientSession clientSession;
 
@@ -29,37 +33,33 @@ public class RangePartitionProcedures {
         this.clientSession = requireNonNull(clientSession);
     }
 
-    public Procedure getCreatePartitionProcedure() {
+    public Procedure getAddPartitionProcedure() {
         return new Procedure(
-                "rangepartitions",
-                "create",
+                "system",
+                "add_range_partition",
                 ImmutableList.of(new Argument("schema", VARCHAR), new Argument("table", VARCHAR),
-                        new Argument("lower_bound", ROW), new Argument("upper_bound", ROW)),
-                CREATE.bindTo(this));
+                        new Argument("range_bounds", VARCHAR)),
+                ADD.bindTo(this));
     }
 
-    public Procedure getDeletePartitionProcedure() {
+    public Procedure getDropPartitionProcedure() {
         return new Procedure(
-                "rangepartitions",
-                "delete",
+                "system",
+                "drop_range_partition",
                 ImmutableList.of(new Argument("schema", VARCHAR), new Argument("table", VARCHAR),
-                        new Argument("lower_bound", ROW), new Argument("upper_bound", ROW)),
-                DELETE.bindTo(this));
+                        new Argument("range_bounds", VARCHAR)),
+                DROP.bindTo(this));
     }
 
-    public void createRangePartition(String schema, String table, String lowerBound, String upperBound) {
-        PartialRow kuduLower = toPartialRow(lowerBound);
-        PartialRow kuduUpper = toPartialRow(upperBound);
-        //clientSession.createRangePartition(schema, table, kuduLower, kuduUpper);
+    public void addRangePartition(String schema, String table, String rangeBounds) {
+        SchemaTableName schemaTableName = new SchemaTableName(schema, table);
+        RangePartition rangePartition = KuduTableProperties.parseRangePartition(rangeBounds);
+        clientSession.addRangePartition(schemaTableName, rangePartition);
     }
 
-    private PartialRow toPartialRow(String block) {
-        return null; // TODO
-    }
-
-    public void deleteRangePartition(String schema, String table, String lowerBound, String upperBound) {
-        PartialRow kuduLower = toPartialRow(lowerBound);
-        PartialRow kuduUpper = toPartialRow(upperBound);
-        //clientSession.deleteRangePartition(schema, table, kuduLower, kuduUpper);
+    public void dropRangePartition(String schema, String table, String rangeBounds) {
+        SchemaTableName schemaTableName = new SchemaTableName(schema, table);
+        RangePartition rangePartition = KuduTableProperties.parseRangePartition(rangeBounds);
+        clientSession.dropRangePartition(schemaTableName, rangePartition);
     }
 }

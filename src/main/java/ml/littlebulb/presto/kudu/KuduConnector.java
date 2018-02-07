@@ -18,14 +18,17 @@
 package ml.littlebulb.presto.kudu;
 
 import com.facebook.presto.spi.connector.*;
+import com.facebook.presto.spi.procedure.Procedure;
 import com.facebook.presto.spi.session.PropertyMetadata;
 import com.facebook.presto.spi.transaction.IsolationLevel;
+import com.google.common.collect.ImmutableSet;
 import ml.littlebulb.presto.kudu.properties.KuduTableProperties;
 import io.airlift.bootstrap.LifeCycleManager;
 import io.airlift.log.Logger;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Set;
 
 import static com.facebook.presto.spi.transaction.IsolationLevel.READ_COMMITTED;
 import static com.facebook.presto.spi.transaction.IsolationLevel.checkConnectorSupports;
@@ -42,13 +45,15 @@ public class KuduConnector implements Connector {
     private final ConnectorPageSourceProvider pageSourceProvider;
     private final KuduTableProperties tableProperties;
     private final ConnectorPageSinkProvider pageSinkProvider;
+    private final Set<Procedure> procedures;
 
     @Inject
     public KuduConnector(LifeCycleManager lifeCycleManager, KuduMetadata metadata,
                          ConnectorSplitManager splitManager, ConnectorRecordSetProvider recordSetProvider,
                          KuduTableProperties tableProperties,
                          ConnectorPageSourceProvider pageSourceProvider,
-                         ConnectorPageSinkProvider pageSinkProvider) {
+                         ConnectorPageSinkProvider pageSinkProvider,
+                         Set<Procedure> procedures) {
         this.lifeCycleManager = requireNonNull(lifeCycleManager, "lifeCycleManager is null");
         this.metadata = requireNonNull(metadata, "metadata is null");
         this.splitManager = requireNonNull(splitManager, "splitManager is null");
@@ -56,6 +61,7 @@ public class KuduConnector implements Connector {
         this.pageSourceProvider = requireNonNull(pageSourceProvider, "pageSourceProvider is null");
         this.tableProperties = requireNonNull(tableProperties, "tableProperties is null");
         this.pageSinkProvider = requireNonNull(pageSinkProvider, "pageSinkProvider is null");
+        this.procedures = ImmutableSet.copyOf(requireNonNull(procedures, "procedures is null"));
     }
 
     @Override
@@ -93,6 +99,11 @@ public class KuduConnector implements Connector {
     @Override
     public List<PropertyMetadata<?>> getTableProperties() {
         return tableProperties.getTableProperties();
+    }
+
+    @Override
+    public Set<Procedure> getProcedures() {
+        return procedures;
     }
 
     @Override

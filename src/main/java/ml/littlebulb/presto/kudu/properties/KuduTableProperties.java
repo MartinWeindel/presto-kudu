@@ -23,11 +23,11 @@ import org.apache.kudu.Type;
 import org.apache.kudu.client.*;
 import org.apache.kudu.shaded.com.google.common.base.Predicates;
 import org.apache.kudu.shaded.com.google.common.collect.Iterators;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.util.*;
 
 import static com.facebook.presto.spi.session.PropertyMetadata.integerSessionProperty;
@@ -160,6 +160,18 @@ public final class KuduTableProperties {
         }
     }
 
+    public static RangePartition parseRangePartition(String json) {
+        if (json == null) {
+            return null;
+        } else {
+            try {
+                return mapper.readValue(json, RangePartition.class);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     public static Optional<Integer> getNumReplicas(Map<String, Object> tableProperties) {
         requireNonNull(tableProperties);
 
@@ -257,7 +269,7 @@ public final class KuduTableProperties {
         switch (type) {
             case UNIXTIME_MICROS:
                 long millis = bound.getLong(idx) / 1000;
-                return ISODateTimeFormat.dateTimeParser().print(millis);
+                return ISODateTimeFormat.dateTime().withZone(DateTimeZone.UTC).print(millis);
             case STRING:
                 return bound.getString(idx);
             case INT64:
@@ -272,7 +284,7 @@ public final class KuduTableProperties {
             case BOOL:
                 return bound.getBoolean(idx);
             case BINARY:
-                return javax.xml.bind.DatatypeConverter.printHexBinary(bound.getBinaryCopy(idx));
+                return bound.getBinaryCopy(idx);
             default:
                 throw new IllegalStateException("Unhandled type " + type + " for range partition");
         }
@@ -296,7 +308,7 @@ public final class KuduTableProperties {
         return columns;
     }
 
-    private static PartitionDesign getPartitionDesign(KuduTable table) {
+    public static PartitionDesign getPartitionDesign(KuduTable table) {
         Schema schema = table.getSchema();
         PartitionDesign partitionDesign = new PartitionDesign();
         PartitionSchema partitionSchema = table.getPartitionSchema();
@@ -402,8 +414,7 @@ public final class KuduTableProperties {
         if (obj instanceof byte[]) {
             return (byte[]) obj;
         } else if (obj instanceof String) {
-            Base64.Decoder decoder = Base64.getDecoder();
-            return decoder.decode((String) obj);
+            return Base64.getDecoder().decode((String) obj);
         } else {
             handleInvalidValue(name, type, obj);
             return null;
@@ -427,7 +438,7 @@ public final class KuduTableProperties {
         } else if (obj instanceof String) {
             String s = (String) obj;
             s = s.trim().replace(' ', 'T');
-            long millis = ISODateTimeFormat.dateOptionalTimeParser().parseMillis(s);
+            long millis = ISODateTimeFormat.dateOptionalTimeParser().withZone(DateTimeZone.UTC).parseMillis(s);
             return millis * 1000;
         } else {
             handleInvalidValue(name, type, obj);

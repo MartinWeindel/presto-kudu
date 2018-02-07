@@ -20,11 +20,9 @@ package ml.littlebulb.presto.kudu;
 import com.facebook.presto.spi.connector.*;
 import com.facebook.presto.spi.procedure.Procedure;
 import com.facebook.presto.spi.type.TypeManager;
-import com.google.inject.Binder;
-import com.google.inject.Module;
-import com.google.inject.Provides;
-import com.google.inject.Scopes;
+import com.google.inject.*;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.multibindings.MultibindingsScanner;
 import com.google.inject.multibindings.ProvidesIntoSet;
 import ml.littlebulb.presto.kudu.procedures.RangePartitionProcedures;
 import ml.littlebulb.presto.kudu.properties.KuduTableProperties;
@@ -35,7 +33,7 @@ import javax.inject.Singleton;
 import static io.airlift.configuration.ConfigBinder.configBinder;
 import static java.util.Objects.requireNonNull;
 
-public class KuduModule implements Module {
+public class KuduModule extends AbstractModule {
 
     private final String connectorId;
     private final TypeManager typeManager;
@@ -46,49 +44,42 @@ public class KuduModule implements Module {
     }
 
     @Override
-    public void configure(Binder binder) {
-        binder.bind(TypeManager.class).toInstance(typeManager);
+    protected void configure() {
+        install(MultibindingsScanner.asModule());
 
-        binder.bind(KuduConnector.class).in(Scopes.SINGLETON);
-        binder.bind(KuduConnectorId.class).toInstance(new KuduConnectorId(connectorId));
-        binder.bind(KuduMetadata.class).in(Scopes.SINGLETON);
-        binder.bind(KuduTableProperties.class).in(Scopes.SINGLETON);
-        binder.bind(ConnectorSplitManager.class).to(KuduSplitManager.class).in(Scopes.SINGLETON);
-        binder.bind(ConnectorRecordSetProvider.class).to(KuduRecordSetProvider.class)
+        bind(TypeManager.class).toInstance(typeManager);
+
+        bind(KuduConnector.class).in(Scopes.SINGLETON);
+        bind(KuduConnectorId.class).toInstance(new KuduConnectorId(connectorId));
+        bind(KuduMetadata.class).in(Scopes.SINGLETON);
+        bind(KuduTableProperties.class).in(Scopes.SINGLETON);
+        bind(ConnectorSplitManager.class).to(KuduSplitManager.class).in(Scopes.SINGLETON);
+        bind(ConnectorRecordSetProvider.class).to(KuduRecordSetProvider.class)
                 .in(Scopes.SINGLETON);
-        binder.bind(ConnectorPageSourceProvider.class).to(KuduPageSourceProvider.class)
+        bind(ConnectorPageSourceProvider.class).to(KuduPageSourceProvider.class)
                 .in(Scopes.SINGLETON);
-        binder.bind(ConnectorPageSinkProvider.class).to(KuduPageSinkProvider.class).in(Scopes.SINGLETON);
-        binder.bind(KuduHandleResolver.class).in(Scopes.SINGLETON);
-        binder.bind(KuduRecordSetProvider.class).in(Scopes.SINGLETON);
-        configBinder(binder).bindConfig(KuduClientConfig.class);
+        bind(ConnectorPageSinkProvider.class).to(KuduPageSinkProvider.class).in(Scopes.SINGLETON);
+        bind(KuduHandleResolver.class).in(Scopes.SINGLETON);
+        bind(KuduRecordSetProvider.class).in(Scopes.SINGLETON);
+        configBinder(binder()).bindConfig(KuduClientConfig.class);
 
-        Multibinder.newSetBinder(binder, Procedure.class);
-
-        binder.bind(RangePartitionProcedures.class).in(Scopes.SINGLETON);
+        bind(RangePartitionProcedures.class).in(Scopes.SINGLETON);
+        Multibinder.newSetBinder(binder(), Procedure.class);
     }
 
     @ProvidesIntoSet
-    public static Procedure getCreateRangePartitionProcedure(RangePartitionProcedures procedures)
-    {
-        return procedures.getCreatePartitionProcedure();
-    }
-/*
-    @ProvidesIntoSet
-    public static Procedure getDeleteRangePartitionProcedure(RangePartitionProcedures procedures)
-    {
-        return procedure.getProcedure();
+    Procedure getAddRangePartitionProcedure(RangePartitionProcedures procedures) {
+        return procedures.getAddPartitionProcedure();
     }
 
     @ProvidesIntoSet
-    public static Procedure getListRangePartitionsProcedure(RangePartitionProcedures procedures)
-    {
-        return procedure.getProcedure();
+    Procedure getDropRangePartitionProcedure(RangePartitionProcedures procedures) {
+        return procedures.getDropPartitionProcedure();
     }
-*/
+
     @Singleton
     @Provides
-    public static KuduClientSession createKuduClientSession(
+    KuduClientSession createKuduClientSession(
             KuduConnectorId connectorId,
             KuduClientConfig config) {
         requireNonNull(config, "config is null");
