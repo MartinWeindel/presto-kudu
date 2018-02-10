@@ -17,6 +17,12 @@ Support for older Presto versions see [release history](https://github.com/Marti
 
 Please follow the below steps to query Apache Kudu in Presto.
 
+### Deploying Kudu server
+Follow installation guide at [Apache Kudu](https://kudu.apache.org/.
+
+If you want to deploy Kudu 1.6.0 on RHE 7 or CentOS 7, you may also be
+interessed in my binary build project [kudu-rpm](https://github.com/MartinWeindel/kudu-rpm/releases/tag/v1.6.0-2).
+
 ### Deploying Presto server
 Install Presto according to the documentation: https://prestodb.io/docs/current/installation/deployment.html
 
