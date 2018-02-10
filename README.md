@@ -276,7 +276,7 @@ or call the procedure .
 
 ### Table property `range_partitions`
 With the `range_partitions` table property you specify the concrete range partitions to be
-created. The range partition definition must be given in the table 
+created. The range partition definition itself must be given in the table 
 property `partition_design` separately.
 
 
@@ -327,6 +327,7 @@ CALL kudu.system.drop_range_partition(<schema>, <table>, <range_partition_as_jso
   column types.
   
   Examples:
+  
   | Presto Data Type | JSON string example |
   | ---------------- | ------------------- |
   | BIGINT           | '{"lower": 0, "upper": 1000000}' | 
@@ -335,6 +336,7 @@ CALL kudu.system.drop_range_partition(<schema>, <table>, <range_partition_as_jso
   | TIMESTAMP        | '{"lower": "2018-02-01T00:00:00.000", "upper": "2018-02-01T12:00:00.000"}' | 
   | BOOLEAN          | '{"lower": false, "upper": true}' | 
   | VARBINARY        | values encoded as base64 strings |
+  
   To specified an unbounded bound, use the value `null`. 
 
 
