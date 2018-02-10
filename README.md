@@ -185,6 +185,8 @@ a `DATE` column is converted to `STRING`
 | `SHOW CREATE TABLE` | [x] | |
 | `SHOW COLUMNS FROM` | [x] | |
 | `DESCRIBE` | [x] | same as `SHOW COLUMNS FROM`|
+| `CALL kudu.system.add_range_partition` | [x] | add range partition to an existing table |
+| `CALL kudu.system.drop_range_partition` | [x] | drop an existing range partition from a table |
 
 Currently not supported are `SHOW PARTITIONS FROM ...`, `ALTER SCHEMA ... RENAME`
 
@@ -233,7 +235,7 @@ Example:
 
 ### Table property `partition_design`
 With the partition design table property you define the partition layout.
-In Apache Kudu you can define multiple hash partitions and zero or one range partition.
+In Apache Kudu you can define multiple hash partitions and at most one range partition.
 Details see Apache Kudu documentation: [Partitioning](https://kudu.apache.org/docs/schema_design.html#partitioning)
 
 The value of this property must be a string of a valid JSON object.
@@ -256,22 +258,100 @@ the primary key.
 
 #### Range partitioning
 You can provide at most one range partition in Apache Kudu.
-It consists of a list of columns. The ranges themselves can
-currently not be created with Presto SQL.
+It consists of a list of columns. The ranges themselves are given either
+in the table property `range_partitions`. Alternatively, the
+procedures `kudu.system.add_range_partition` and `kudu.system.drop_range_partition`
+can be used to manage range partitions for existing tables.
+For both ways see below for more details.
 
 Example:
 ```
 '{"range": {"columns": ["event_time"]}}'
 ```
 
-Creates a range partition on the column "event".
+Defines range partitioning on the column "event".
+
+To add concrete range partitions use either the table property `range_partitions`
+or call the procedure .
+
+### Table property `range_partitions`
+With the `range_partitions` table property you specify the concrete range partitions to be
+created. The range partition definition must be given in the table 
+property `partition_design` separately.
+
+
+
+Example:
+```sql
+CREATE TABLE events (
+  serialno varchar,
+  event_time timestamp,
+  message varchar
+) WITH (
+ column_design = '{"serialno": {"key": true}, "event_time": {"key": true}}',
+ partition_design = '{"hash":[{"columns":["serialno"], "buckets": 4}],
+                      "range": {"columns":["event_time"]}}',
+ range_partitions = '[{"lower": null, "upper": "2017-01-01T00:00:00"},
+                      {"lower": "2017-01-01T00:00:00", "upper": "2017-07-01T00:00:00"},
+                      {"lower": "2017-07-01T00:00:00", "upper": "2018-01-01T00:00:00"}]',
+ num_replicas = 1
+); 
+```
+This creates a table with a hash partition on column `serialno` with 4 buckets and range partitioning
+on column `event_time`. Additionally three range partitions are created:
+  1. for all event_times before the year 2017 (lower bound = `null` means it is unbound)
+  2. for the first half of the year 2017
+  3. for the second half the year 2017
+This means any try to add rows with `event_time` of year 2018 or greater will fail,
+as no partition is defined.
+
+#### Managing range partitions
+For existing tables, there are procedures to add and drop a range partition.
+
+- adding a range partition
+```sql
+CALL kudu.system.add_range_partition(<schema>, <table>, <range_partition_as_json_string>), 
+```
+
+- dropping a range partition
+```sql
+CALL kudu.system.drop_range_partition(<schema>, <table>, <range_partition_as_json_string>) 
+```
+
+- `<schema>`: schema of the table
+- `<table>`: table names
+- `<range_partition_as_json_string>`: lower and upper bound of the range partition
+  as json string in the form `'{"lower": <value>, "upper": <value>}'`, or if the range
+  partition has multiple columns: `'{"lower": [<value_col1>,...], "upper": [<value_col1>,...]}'`.
+  The concrete literal for lower and upper bound values are depending on the
+  column types.
+  
+  Examples:
+  | Presto Data Type | JSON string example |
+  | ---------------- | ------------------- |
+  | BIGINT           | '{"lower": 0, "upper": 1000000}' | 
+  | SMALLINT         | '{"lower": 10, "upper": null}' | 
+  | VARCHAR          | '{"lower": "A", "upper": "M"}' | 
+  | TIMESTAMP        | '{"lower": "2018-02-01T00:00:00.000", "upper": "2018-02-01T12:00:00.000"}' | 
+  | BOOLEAN          | '{"lower": false, "upper": true}' | 
+  | VARBINARY        | values encoded as base64 strings |
+  To specified an unbounded bound, use the value `null`. 
+
+
+Example:
+```sql
+CALL kudu.system.add_range_partition('myschema', 'events', '{"lower": "2018-01-01", "upper": "2018-06-01"}')  
+```
+This would add a range partition for a table `events` in the schema `myschema` with
+the lower bound `2018-01-01` (more exactly `2018-01-01T00:00:00.000`) and the upper bound `2018-07-01`.
+
+Use the sql statement `SHOW CREATE TABLE` to request the existing range partitions (they are shown
+in the table property `range_partitions`). 
 
 ## Known limitations
 - Only lower case table and column names in Kudu are supported
 - As schemas are not directly supported by Kudu, a special table named `$schemas`
   is created in Kudu when using this connector 
-- Creating tables with range partitioning is incomplete. You have to use
-  other Kudu clients for this case.
 - Using secured Kudu cluster has not been tested.
 
 ## Build
