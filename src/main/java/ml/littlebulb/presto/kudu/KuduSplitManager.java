@@ -42,7 +42,8 @@ public class KuduSplitManager implements ConnectorSplitManager {
 
     @Override
     public ConnectorSplitSource getSplits(ConnectorTransactionHandle transactionHandle,
-                                          ConnectorSession session, ConnectorTableLayoutHandle layout) {
+                                          ConnectorSession session, ConnectorTableLayoutHandle layout,
+                                          SplitSchedulingStrategy splitSchedulingStrategy) {
         KuduTableLayoutHandle layoutHandle = (KuduTableLayoutHandle) layout;
 
         List<KuduSplit> splits = clientSession.buildKuduSplits(layoutHandle);
