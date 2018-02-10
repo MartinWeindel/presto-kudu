@@ -9,7 +9,7 @@ The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and
 | Apache Kudu 1.5.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.6.0 |
 | Apache Kudu 1.4.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.6.0 |
 |  |  | | |
-| Presto 0.193 | yes | tested |
+| Presto 0.194 | yes | tested |
 
 Support for older Presto versions see [release history](https://github.com/MartinWeindel/presto-kudu/wiki/Release-History)
 
