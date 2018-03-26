@@ -5,11 +5,12 @@ The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and
 
 | Version | Compatibility | Details       |
 | ------- | --------------| ------------- |
-| Apache Kudu 1.6.0 | yes | tested  |
-| Apache Kudu 1.5.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.6.0 |
-| Apache Kudu 1.4.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.6.0 |
+| Apache Kudu 1.7.0 | yes | tested  |
+| Apache Kudu 1.6.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
+| Apache Kudu 1.5.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
+| Apache Kudu 1.4.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
 |  |  | | |
-| Presto 0.194 | yes | tested |
+| Presto 0.197 | yes | tests ongoing |
 
 Support for older Presto versions see [release history](https://github.com/MartinWeindel/presto-kudu/wiki/Release-History)
 
@@ -20,8 +21,8 @@ Please follow the below steps to query Apache Kudu in Presto.
 ### Deploying Kudu server
 Follow installation guide at [Apache Kudu](https://kudu.apache.org/).
 
-If you want to deploy Kudu 1.6.0 on RHE 7 or CentOS 7, you may also be
-interessed in my binary build project [kudu-rpm](https://github.com/MartinWeindel/kudu-rpm/releases/tag/v1.6.0-2).
+If you want to deploy Kudu 1.7.0 on RHE 7 or CentOS 7, you may also be
+interessed in my binary build project [kudu-rpm](https://github.com/MartinWeindel/kudu-rpm/releases/tag/v1.7.0-1).
 
 ### Deploying Presto server
 Install Presto according to the documentation: https://prestodb.io/docs/current/installation/deployment.html
@@ -149,7 +150,7 @@ The data types of Presto and Kudu are mapped as far as possible:
 | `VARCHAR` | `STRING` | see note 1 |
 | `VARBINARY` | `BINARY` | see note 1 |
 | `TIMESTAMP` | `UNIXTIME_MICROS` | µs resolution in Kudu column is reduced to ms resolution |
-| `DECIMAL` | - | not supported |
+| `DECIMAL` | `DECIMAL` | only supported for Kudu server >= 1.7.0 |
 | `CHAR` | - | not supported |
 | `DATE` | - | not supported, see note 2 |
 | `TIME` | - | not supported |
@@ -377,7 +378,7 @@ To run the build with tests, it is assumed that Kudu master server
 (and at least one Kudu tablet server) runs on localhost.
 If you have Docker installed on your machine, you can use following steps:
 ```bash
-docker run --rm -d --name apache-kudu --net=host usuresearch/kudu-docker-slim:release-v1.6.0-2
+docker run --rm -d --name apache-kudu --net=host usuresearch/kudu-docker-slim:release-v1.7.0-1
 mvn clean package
 docker stop apache-kudu
 ```
