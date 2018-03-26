@@ -47,13 +47,7 @@ public class KuduRecordSet implements RecordSet {
     @Override
     public List<Type> getColumnTypes() {
         return columns.stream()
-                .map(column -> ((KuduColumnHandle) column).getKuduType().getPrestoType())
-                .collect(toImmutableList());
-    }
-
-    public List<KuduType> getKuduColumnTypes() {
-        return columns.stream()
-                .map(column -> ((KuduColumnHandle) column).getKuduType())
+                .map(column -> ((KuduColumnHandle) column).getType())
                 .collect(toImmutableList());
     }
 
@@ -61,7 +55,7 @@ public class KuduRecordSet implements RecordSet {
     public RecordCursor cursor() {
         KuduScanner scanner = clientSession.createScanner(kuduSplit);
         if (!containsVirtualRowId) {
-            return new KuduRecordCursor(scanner, getKuduColumnTypes());
+            return new KuduRecordCursor(scanner, getColumnTypes());
         } else {
             final int primaryKeyColumnCount = kuduSplit.getPrimaryKeyColumnCount();
 
@@ -82,7 +76,7 @@ public class KuduRecordSet implements RecordSet {
             }
 
             KuduTable table = getTable();
-            return new KuduRecordCursorWithVirtualRowId(scanner, table, getKuduColumnTypes(), fieldMapping);
+            return new KuduRecordCursorWithVirtualRowId(scanner, table, getColumnTypes(), fieldMapping);
         }
     }
 

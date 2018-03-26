@@ -4,13 +4,16 @@ import com.facebook.presto.spi.ConnectorPageSink;
 import com.facebook.presto.spi.ConnectorSession;
 import com.facebook.presto.spi.Page;
 import com.facebook.presto.spi.block.Block;
+import com.facebook.presto.spi.type.DecimalType;
 import com.facebook.presto.spi.type.SqlDate;
+import com.facebook.presto.spi.type.SqlDecimal;
 import com.facebook.presto.spi.type.Type;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 import io.airlift.slice.Slice;
 import org.apache.kudu.client.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -113,6 +116,9 @@ public class KuduPageSink implements ConnectorPageSink {
             }
         } else if (VARBINARY.equals(type)) {
             row.addBinary(destChannel, type.getSlice(block, position).toByteBuffer());
+        } else if (type instanceof DecimalType) {
+            SqlDecimal sqlDecimal = (SqlDecimal) type.getObjectValue(connectorSession, block, position);
+            row.addDecimal(destChannel, sqlDecimal.toBigDecimal());
         } else {
             throw new UnsupportedOperationException("Type is not supported: " + type);
         }

@@ -89,7 +89,6 @@ public class KuduMetadata implements ConnectorMetadata {
         List<ColumnMetadata> columnsMetaList = schema.getColumns().stream()
                 .filter(col -> !col.isKey() || !col.getName().equals(KuduColumnHandle.ROW_ID))
                 .map(col -> {
-                    KuduType kuduType = KuduType.fromKuduClientType(col.getType());
                     StringBuilder extra = new StringBuilder();
                     if (col.isKey()) {
                         extra.append("key, ");
@@ -105,7 +104,8 @@ public class KuduMetadata implements ConnectorMetadata {
                     if (extra.length() > 2) {
                         extra.setLength(extra.length() - 2);
                     }
-                    return new ColumnMetadata(col.getName(), kuduType.getPrestoType(), null, extra.toString(), false);
+                    Type prestoType = TypeHelper.fromKuduColumn(col);
+                    return new ColumnMetadata(col.getName(), prestoType, null, extra.toString(), false);
                 }).collect(toImmutableList());
 
         Map<String, Object> properties = clientSession.getTableProperties(tableHandle);
@@ -126,7 +126,7 @@ public class KuduMetadata implements ConnectorMetadata {
         for (int i = 0; i < schema.getColumnCount(); i++) {
             ColumnSchema col = schema.getColumnByIndex(i);
             String name = col.getName();
-            KuduType type = KuduType.fromKuduClientType(col.getType());
+            Type type = TypeHelper.fromKuduColumn(col);
             KuduColumnHandle columnHandle = new KuduColumnHandle(name, i, type);
             columnHandles.put(name, columnHandle);
         }
@@ -238,7 +238,7 @@ public class KuduMetadata implements ConnectorMetadata {
         List<ColumnSchema> columns = schema.getColumns();
         List<String> columnNames = columns.stream().map(ColumnSchema::getName).collect(toImmutableList());
         List<Type> columnTypes = columns.stream()
-                .map(column -> KuduType.fromKuduClientType(column.getType()).getPrestoType()).collect(toImmutableList());
+                .map(TypeHelper::fromKuduColumn).collect(toImmutableList());
 
         return new KuduInsertTableHandle(
                 connectorId,
@@ -280,7 +280,7 @@ public class KuduMetadata implements ConnectorMetadata {
         List<ColumnSchema> columns = schema.getColumns();
         List<String> columnNames = columns.stream().map(ColumnSchema::getName).collect(toImmutableList());
         List<Type> columnTypes = columns.stream()
-                .map(column -> KuduType.fromKuduClientType(column.getType()).getPrestoType()).collect(toImmutableList());
+                .map(TypeHelper::fromKuduColumn).collect(toImmutableList());
         List<Type> columnOriginalTypes = finalTableMetadata.getColumns().stream()
                 .map(ColumnMetadata::getType).collect(toImmutableList());
 

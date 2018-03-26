@@ -19,6 +19,8 @@ package ml.littlebulb.presto.kudu;
 
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ColumnMetadata;
+import com.facebook.presto.spi.type.Type;
+import com.facebook.presto.spi.type.VarbinaryType;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
@@ -31,20 +33,20 @@ import static java.util.Objects.requireNonNull;
 public class KuduColumnHandle implements ColumnHandle {
     public static final String ROW_ID = "row_uuid";
 
-    public static final KuduColumnHandle ROW_ID_HANDLE = new KuduColumnHandle(ROW_ID, -1, KuduType.BINARY);
+    public static final KuduColumnHandle ROW_ID_HANDLE = new KuduColumnHandle(ROW_ID, -1, VarbinaryType.VARBINARY);
 
     private final String name;
     private final int ordinalPosition;
-    private final KuduType kuduType;
+    private final Type type;
 
     @JsonCreator
     public KuduColumnHandle(
             @JsonProperty("name") String name,
             @JsonProperty("ordinalPosition") int ordinalPosition,
-            @JsonProperty("kuduType") KuduType kuduType) {
+            @JsonProperty("type") Type type) {
         this.name = requireNonNull(name, "name is null");
         this.ordinalPosition = ordinalPosition;
-        this.kuduType = requireNonNull(kuduType, "kuduType is null");
+        this.type = requireNonNull(type, "type is null");
     }
 
     @JsonProperty
@@ -58,13 +60,13 @@ public class KuduColumnHandle implements ColumnHandle {
     }
 
     @JsonProperty
-    public KuduType getKuduType() {
-        return kuduType;
+    public Type getType() {
+        return type;
     }
 
 
     public ColumnMetadata getColumnMetadata() {
-        return new ColumnMetadata(name, kuduType.getPrestoType());
+        return new ColumnMetadata(name, type);
     }
 
     public boolean isVirtualRowId() {
@@ -76,7 +78,7 @@ public class KuduColumnHandle implements ColumnHandle {
         return Objects.hash(
                 name,
                 ordinalPosition,
-                kuduType);
+                type);
     }
 
     @Override
@@ -90,7 +92,7 @@ public class KuduColumnHandle implements ColumnHandle {
         KuduColumnHandle other = (KuduColumnHandle) obj;
         return Objects.equals(this.name, other.name) &&
                 Objects.equals(this.ordinalPosition, other.ordinalPosition) &&
-                Objects.equals(this.kuduType, other.kuduType);
+                Objects.equals(this.type, other.type);
     }
 
     @Override
@@ -98,7 +100,7 @@ public class KuduColumnHandle implements ColumnHandle {
         MoreObjects.ToStringHelper helper = toStringHelper(this)
                 .add("name", name)
                 .add("ordinalPosition", ordinalPosition)
-                .add("kuduType", kuduType);
+                .add("type", type);
 
         return helper.toString();
     }

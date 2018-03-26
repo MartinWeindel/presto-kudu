@@ -1,5 +1,6 @@
 package ml.littlebulb.presto.kudu;
 
+import com.facebook.presto.spi.type.Type;
 import io.airlift.slice.Slice;
 import io.airlift.slice.Slices;
 import org.apache.kudu.Schema;
@@ -16,9 +17,9 @@ public class KuduRecordCursorWithVirtualRowId extends KuduRecordCursor {
     private final Map<Integer, Integer> fieldMapping;
 
     public KuduRecordCursorWithVirtualRowId(KuduScanner scanner, KuduTable table,
-                                            List<KuduType> kuduColumnTypes,
+                                            List<Type> columnTypes,
                                             Map<Integer, Integer> fieldMapping) {
-        super(scanner, kuduColumnTypes);
+        super(scanner, columnTypes);
         this.table = table;
         this.fieldMapping = fieldMapping;
     }

@@ -37,7 +37,7 @@ public class KuduRecordCursor implements RecordCursor {
     private static final Logger log = Logger.get(KuduRecordCursor.class);
 
     private final KuduScanner scanner;
-    private final List<KuduType> columnTypes;
+    private final List<Type> columnTypes;
     private final Field rowDataField;
     private RowResultIterator nextRows;
     protected RowResult currentRow;
@@ -47,7 +47,7 @@ public class KuduRecordCursor implements RecordCursor {
     private long nanoEnd;
     private boolean started;
 
-    public KuduRecordCursor(KuduScanner scanner, List<KuduType> columnTypes) {
+    public KuduRecordCursor(KuduScanner scanner, List<Type> columnTypes) {
         this.scanner = scanner;
         this.columnTypes = columnTypes;
         Field field = null;
@@ -72,7 +72,7 @@ public class KuduRecordCursor implements RecordCursor {
 
     @Override
     public Type getType(int field) {
-        return columnTypes.get(field).getPrestoType();
+        return columnTypes.get(field);
     }
 
     protected int mapping(int field) { return field; }
@@ -139,50 +139,32 @@ public class KuduRecordCursor implements RecordCursor {
 
     @Override
     public boolean getBoolean(int field) {
-        return currentRow.getBoolean(mapping(field));
+        int index = mapping(field);
+        return TypeHelper.getBoolean(columnTypes.get(field), currentRow, index);
     }
 
     @Override
     public long getLong(int field) {
-        switch (columnTypes.get(field)) {
-            case INT64:
-                return currentRow.getLong(mapping(field));
-            case UNIXTIME_MICROS:
-                return currentRow.getLong(mapping(field)) / 1000;
-            case INT32:
-                return currentRow.getInt(mapping(field));
-            case FLOAT:
-                return floatToRawIntBits(currentRow.getFloat(mapping(field)));
-            case INT16:
-                return currentRow.getShort(mapping(field));
-            case INT8:
-                return currentRow.getByte(mapping(field));
-            default:
-                throw new IllegalStateException("Unexpected column type: " + columnTypes.get(field));
-        }
+        int index = mapping(field);
+        return TypeHelper.getLong(columnTypes.get(field), currentRow, index);
     }
 
     @Override
     public double getDouble(int field) {
-        return currentRow.getDouble(mapping(field));
+        int index = mapping(field);
+        return TypeHelper.getDouble(columnTypes.get(field), currentRow, index);
     }
 
     @Override
     public Slice getSlice(int field) {
-        final KuduType kuduType = columnTypes.get(field);
-        switch (kuduType) {
-            case BINARY:
-                return Slices.wrappedBuffer(currentRow.getBinary(mapping(field)));
-            case STRING:
-                return Slices.utf8Slice(currentRow.getString(mapping(field)));
-            default:
-                throw new IllegalStateException("getSlice for kuduType=" + kuduType);
-        }
+        int index = mapping(field);
+        return TypeHelper.getSlice(columnTypes.get(field), currentRow, index);
     }
 
     @Override
     public Object getObject(int field) {
-        return columnTypes.get(field).getFieldValue(currentRow, mapping(field));
+        int index = mapping(field);
+        return TypeHelper.getObject(columnTypes.get(field), currentRow, index);
     }
 
     @Override

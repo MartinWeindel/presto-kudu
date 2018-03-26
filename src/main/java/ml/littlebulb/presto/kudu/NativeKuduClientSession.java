@@ -2,11 +2,13 @@ package ml.littlebulb.presto.kudu;
 
 import com.facebook.presto.spi.*;
 import com.facebook.presto.spi.predicate.*;
+import com.facebook.presto.spi.type.DecimalType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.airlift.log.Logger;
 import ml.littlebulb.presto.kudu.properties.*;
 import org.apache.kudu.ColumnSchema;
+import org.apache.kudu.ColumnTypeAttributes;
 import org.apache.kudu.Schema;
 import org.apache.kudu.Type;
 import org.apache.kudu.client.*;
@@ -340,7 +342,7 @@ public class NativeKuduClientSession implements KuduClientSession {
         try {
             String rawName = toRawName(schemaTableName);
             AlterTableOptions alterOptions = new AlterTableOptions();
-            Type type = KuduType.fromPrestoType(column.getType()).getKuduClientType();
+            Type type = TypeHelper.toKuduClientType(column.getType());
             alterOptions.addNullableColumn(column.getName(), type);
             client.alterTable(rawName, alterOptions);
         } catch (KuduException e) {
@@ -374,7 +376,7 @@ public class NativeKuduClientSession implements KuduClientSession {
 
     private static enum RangePartitionChange {
         ADD, DROP
-    };
+    }
 
     @Override
     public void addRangePartition(SchemaTableName schemaTableName, RangePartition rangePartition) {
@@ -430,12 +432,23 @@ public class NativeKuduClientSession implements KuduClientSession {
     private ColumnSchema toColumnSchema(ColumnMetadata columnMetadata, Map<String, ColumnDesign> columnDesignMap) {
         String name = columnMetadata.getName();
         ColumnDesign design = columnDesignMap.getOrDefault(name, ColumnDesign.DEFAULT);
-        KuduType ktype = KuduType.fromPrestoType(columnMetadata.getType());
-        ColumnSchema.ColumnSchemaBuilder builder = new ColumnSchema.ColumnSchemaBuilder(name, ktype.getKuduClientType());
+        Type ktype = TypeHelper.toKuduClientType(columnMetadata.getType());
+        ColumnSchema.ColumnSchemaBuilder builder = new ColumnSchema.ColumnSchemaBuilder(name, ktype);
         builder.key(design.isKey()).nullable(design.isNullable());
         setEncoding(name, builder, design);
         setCompression(name, builder, design);
+        setTypeAttributes(columnMetadata, builder);
         return builder.build();
+    }
+
+    private void setTypeAttributes(ColumnMetadata columnMetadata, ColumnSchema.ColumnSchemaBuilder builder) {
+        if (columnMetadata.getType() instanceof DecimalType) {
+            DecimalType type = (DecimalType) columnMetadata.getType();
+            ColumnTypeAttributes attributes = new ColumnTypeAttributes.ColumnTypeAttributesBuilder()
+                    .precision(type.getPrecision())
+                    .scale(type.getScale()).build();
+            builder.typeAttributes(attributes);
+        }
     }
 
     private void setCompression(String name, ColumnSchema.ColumnSchemaBuilder builder, ColumnDesign design) {
@@ -525,7 +538,7 @@ public class NativeKuduClientSession implements KuduClientSession {
                 } else {
                     ValueSet valueSet = domain.getValues();
                     if (valueSet instanceof EquatableValueSet) {
-                        DiscreteValues discreteValues = ((EquatableValueSet) valueSet).getDiscreteValues();
+                        DiscreteValues discreteValues = valueSet.getDiscreteValues();
                         KuduPredicate predicate = createInListPredicate(columnSchema, discreteValues);
                         builder.addPredicate(predicate);
                     } else if (valueSet instanceof SortedRangeSet) {
@@ -555,8 +568,8 @@ public class NativeKuduClientSession implements KuduClientSession {
     }
 
     private KuduPredicate createInListPredicate(ColumnSchema columnSchema, DiscreteValues discreteValues) {
-        KuduType kuduType = KuduType.fromKuduClientType(columnSchema.getType());
-        List<Object> javaValues = discreteValues.getValues().stream().map(value -> kuduType.getJavaValue(value)).collect(toImmutableList());
+        com.facebook.presto.spi.type.Type type = TypeHelper.fromKuduColumn(columnSchema);
+        List<Object> javaValues = discreteValues.getValues().stream().map(value -> TypeHelper.getJavaValue(type, value)).collect(toImmutableList());
         return KuduPredicate.newInListPredicate(columnSchema, javaValues);
     }
 
@@ -567,8 +580,8 @@ public class NativeKuduClientSession implements KuduClientSession {
     private KuduPredicate createComparisonPredicate(ColumnSchema columnSchema,
                                                     KuduPredicate.ComparisonOp op,
                                                     Object value) {
-        KuduType kuduType = KuduType.fromKuduClientType(columnSchema.getType());
-        Object javaValue = kuduType.getJavaValue(value);
+        com.facebook.presto.spi.type.Type type = TypeHelper.fromKuduColumn(columnSchema);
+        Object javaValue = TypeHelper.getJavaValue(type, value);
         if (javaValue instanceof Long) {
             return KuduPredicate.newComparisonPredicate(columnSchema, op, (Long) javaValue);
         } else if (javaValue instanceof Integer) {
