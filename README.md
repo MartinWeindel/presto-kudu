@@ -12,7 +12,7 @@ The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and
 |  |  | | |
 | Presto 0.197 | yes | tests ok |
 
-Support for older Presto versions see [release history](https://github.com/MartinWeindel/presto-kudu/wiki/Release-History)
+Support for older Presto versions see [release history](https://github.com/MartinWeindel/presto-kudu/releases)
 
 ## Installation
 
