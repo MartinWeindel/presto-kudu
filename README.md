@@ -5,12 +5,12 @@ The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and
 
 | Version | Compatibility | Details       |
 | ------- | --------------| ------------- |
-| Apache Kudu 1.7.0 | yes | tested  |
+| Apache Kudu 1.7.0 | yes | tests ok |
 | Apache Kudu 1.6.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
 | Apache Kudu 1.5.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
 | Apache Kudu 1.4.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
 |  |  | | |
-| Presto 0.197 | yes | tests ongoing |
+| Presto 0.197 | yes | tests ok |
 
 Support for older Presto versions see [release history](https://github.com/MartinWeindel/presto-kudu/wiki/Release-History)
 
@@ -361,7 +361,7 @@ in the table property `range_partitions`).
 - Only lower case table and column names in Kudu are supported
 - As schemas are not directly supported by Kudu, a special table named `$schemas`
   is created in Kudu when using this connector 
-- Using secured Kudu cluster has not been tested.
+- Using a secured Kudu cluster has not been tested.
 
 ## Build
 The Presto-Kudu connector is a standard Maven project.
