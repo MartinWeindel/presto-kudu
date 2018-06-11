@@ -10,7 +10,7 @@ The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and
 | Apache Kudu 1.5.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
 | Apache Kudu 1.4.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
 |  |  | | |
-| Presto 0.198 | yes | tests ok |
+| Presto 0.203 | yes | tests ok |
 
 Support for older Presto versions see [release history](https://github.com/MartinWeindel/presto-kudu/releases)
 
@@ -82,16 +82,6 @@ A Kudu table containing a dot is considered as a schema/table combination, e.g.
 `dev.mytable` is mapped to the Presto table `kudu.dev.mytable.
 Only Kudu table names in lower case are currently supported.
 
-Before using any tablets, it is needed to create the default schema, e.g.
-```sql
-CREATE SCHEMA default;
-```
-
-### Example
-- Create default schema if needed:
-```sql
-CREATE SCHEMA IF NOT EXISTS default;
-```
 
 - Now you can use any Kudu table, if it is lower case and contains no dots.
 - Alternatively you can create a users table with

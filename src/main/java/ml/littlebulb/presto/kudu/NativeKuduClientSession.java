@@ -19,12 +19,13 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.facebook.presto.spi.StandardErrorCode.GENERIC_INTERNAL_ERROR;
+import static com.facebook.presto.spi.StandardErrorCode.GENERIC_USER_ERROR;
 import static com.facebook.presto.spi.StandardErrorCode.QUERY_REJECTED;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 
 public class NativeKuduClientSession implements KuduClientSession {
-    public static final String NULL_SCHEMA = "default";
+    public static final String DEFAULT_SCHEMA = "default";
     private final Logger log = Logger.get(getClass());
     private final KuduConnectorId connectorId;
     private final String tenantPrefix;
@@ -103,13 +104,12 @@ public class NativeKuduClientSession implements KuduClientSession {
         final String prefix = tenantPrefix;
         List<String> tables = internalListTables(prefix);
         LinkedHashSet<String> schemas = new LinkedHashSet<>();
+        schemas.add(DEFAULT_SCHEMA);
         for (String table : tables) {
             int index = table.indexOf('.', prefix.length());
             if (index > prefix.length()) {
                 String schema = table.substring(prefix.length(), index);
                 schemas.add(schema);
-            } else {
-                schemas.add(NULL_SCHEMA);
             }
         }
         return ImmutableList.copyOf(schemas);
@@ -134,7 +134,7 @@ public class NativeKuduClientSession implements KuduClientSession {
     public List<SchemaTableName> listTables(String schemaNameOrNull) {
         final int offset = tenantPrefix.length();
         final String prefix;
-        if (schemaNameOrNull == null || schemaNameOrNull.equals(NULL_SCHEMA)) {
+        if (schemaNameOrNull == null || schemaNameOrNull.equals(DEFAULT_SCHEMA)) {
             prefix = tenantPrefix;
         } else {
             prefix = tenantPrefix + schemaNameOrNull + ".";
@@ -147,7 +147,7 @@ public class NativeKuduClientSession implements KuduClientSession {
                 String table = name.substring(index + 1);
                 return new SchemaTableName(schema, table);
             } else {
-                String schema = NULL_SCHEMA;
+                String schema = DEFAULT_SCHEMA;
                 String table = name.substring(offset);
                 return new SchemaTableName(schema, table);
             }
@@ -253,18 +253,25 @@ public class NativeKuduClientSession implements KuduClientSession {
 
     @Override
     public void createSchema(String schemaName) {
-        try {
-            KuduTable schemasTable = getSchemasTable();
-            KuduSession session = client.newSession();
+        if (DEFAULT_SCHEMA.equals(schemaName)) {
+            throw new SchemaAlreadyExistsException(schemaName);
+        }
+        else {
             try {
-                Upsert upsert = schemasTable.newUpsert();
-                fillSchemaRow(upsert.getRow(), schemaName);
-                session.apply(upsert);
-            } finally {
-                session.close();
+                KuduTable schemasTable = getSchemasTable();
+                KuduSession session = client.newSession();
+                try {
+                    Upsert upsert = schemasTable.newUpsert();
+                    fillSchemaRow(upsert.getRow(), schemaName);
+                    session.apply(upsert);
+                }
+                finally {
+                    session.close();
+                }
             }
-        } catch (KuduException e) {
-            throw new PrestoException(GENERIC_INTERNAL_ERROR, e);
+            catch (KuduException e) {
+                throw new PrestoException(GENERIC_INTERNAL_ERROR, e);
+            }
         }
     }
 
@@ -275,21 +282,28 @@ public class NativeKuduClientSession implements KuduClientSession {
 
     @Override
     public void dropSchema(String schemaName) {
-        try {
-            for (SchemaTableName table: listTables(schemaName)) {
-                dropTable(table);
-            }
-            KuduTable schemasTable = getSchemasTable();
-            KuduSession session = client.newSession();
+        if (DEFAULT_SCHEMA.equals(schemaName)) {
+            throw new PrestoException(GENERIC_USER_ERROR, "Deleting default schema not allowed.");
+        }
+        else {
             try {
-                Delete delete = schemasTable.newDelete();
-                fillSchemaRow(delete.getRow(), schemaName);
-                session.apply(delete);
-            } finally {
-                session.close();
+                for (SchemaTableName table : listTables(schemaName)) {
+                    dropTable(table);
+                }
+                KuduTable schemasTable = getSchemasTable();
+                KuduSession session = client.newSession();
+                try {
+                    Delete delete = schemasTable.newDelete();
+                    fillSchemaRow(delete.getRow(), schemaName);
+                    session.apply(delete);
+                }
+                finally {
+                    session.close();
+                }
             }
-        } catch (KuduException e) {
-            throw new PrestoException(GENERIC_INTERNAL_ERROR, e);
+            catch (KuduException e) {
+                throw new PrestoException(GENERIC_INTERNAL_ERROR, e);
+            }
         }
     }
 
@@ -374,7 +388,7 @@ public class NativeKuduClientSession implements KuduClientSession {
         }
     }
 
-    private static enum RangePartitionChange {
+    private enum RangePartitionChange {
         ADD, DROP
     }
 
@@ -620,7 +634,7 @@ public class NativeKuduClientSession implements KuduClientSession {
 
     private String toRawName(SchemaTableName schemaTableName) {
         String rawName;
-        if (schemaTableName.getSchemaName().equals(NULL_SCHEMA)) {
+        if (schemaTableName.getSchemaName().equals(DEFAULT_SCHEMA)) {
             rawName = tenantPrefix + schemaTableName.getTableName();
         } else {
             rawName = tenantPrefix + schemaTableName.getSchemaName() + "." + schemaTableName.getTableName();
