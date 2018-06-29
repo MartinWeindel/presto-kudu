@@ -82,10 +82,6 @@ public class KuduRecordCursor implements RecordCursor {
      */
     @Override
     public boolean advanceNextPosition() {
-        if (started && nextRows == null) {
-            return false;
-        }
-
         boolean needNextRows = !started || !nextRows.hasNext();
 
         if (!started) {
@@ -94,12 +90,15 @@ public class KuduRecordCursor implements RecordCursor {
         }
 
         if (needNextRows) {
+			currentRow = null;
             try {
-                nextRows = scanner.nextRows();
-                if (nextRows == null) {
-                    currentRow = null;
-                    return false;
-                }
+				do {
+					if (!scanner.hasMoreRows()) {
+						return false;
+					}
+				
+					nextRows = scanner.nextRows();
+				} while (!nextRows.hasNext());
                 log.debug("Fetched " + nextRows.getNumRows() + " rows");
             } catch (KuduException e) {
                 currentRow = null;
@@ -107,13 +106,9 @@ public class KuduRecordCursor implements RecordCursor {
             }
         }
 
-        if (nextRows.hasNext()) {
-            currentRow = nextRows.next();
-            totalBytes += getRowLength();
-            return true;
-        }
-        currentRow = null;
-        return false;
+		currentRow = nextRows.next();
+		totalBytes += getRowLength();
+		return true;
     }
 
     private org.apache.kudu.util.Slice getCurrentRowRawData() {
