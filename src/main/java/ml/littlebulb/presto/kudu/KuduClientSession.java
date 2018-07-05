@@ -33,6 +33,8 @@ public interface KuduClientSession {
 
     void createSchema(String schemaName);
 
+    Boolean  schemaExists(String schemaName);
+
     void dropSchema(String schemaName);
 
     void dropTable(SchemaTableName schemaTableName);

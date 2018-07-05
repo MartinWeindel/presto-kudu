@@ -69,6 +69,11 @@ public class NativeKuduClientSession implements KuduClientSession {
         }
     }
 
+    @Override
+    public Boolean  schemaExists(String schemaName){
+            List<String> list =listSchemaNames();
+            return list.contains(schemaName);
+    }
     private KuduTable getSchemasTable() throws KuduException {
         if (rawSchemasTable == null) {
             rawSchemasTable = client.openTable(rawSchemasTableName);
@@ -333,13 +338,16 @@ public class NativeKuduClientSession implements KuduClientSession {
     @Override
     public KuduTable createTable(ConnectorTableMetadata tableMetadata, boolean ignoreExisting) {
         try {
-            String rawName = toRawName(tableMetadata.getTable());
+            SchemaTableName schemeTableName= tableMetadata.getTable();
+            String rawName = toRawName(schemeTableName);
             if (ignoreExisting) {
                 if (client.tableExists(rawName)) {
                     return null;
                 }
             }
-
+            if(!schemaExists(schemeTableName.getSchemaName())){
+                throw new PrestoException(GENERIC_INTERNAL_ERROR, "schema is not exists:" + schemeTableName.getSchemaName());
+            }
             List<ColumnMetadata> columns = tableMetadata.getColumns();
             Map<String, Object> properties = tableMetadata.getProperties();
 
