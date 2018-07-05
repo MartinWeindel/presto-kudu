@@ -70,10 +70,11 @@ public class NativeKuduClientSession implements KuduClientSession {
     }
 
     @Override
-    public Boolean  schemaExists(String schemaName){
-            List<String> list =listSchemaNames();
-            return list.contains(schemaName);
+    public boolean schemaExists(String schemaName) {
+        List<String> list = listSchemaNames();
+        return list.contains(schemaName);
     }
+
     private KuduTable getSchemasTable() throws KuduException {
         if (rawSchemasTable == null) {
             rawSchemasTable = client.openTable(rawSchemasTableName);

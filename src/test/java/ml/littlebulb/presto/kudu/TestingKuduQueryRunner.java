@@ -47,7 +47,6 @@ public class TestingKuduQueryRunner
             Map<String, String> properties = ImmutableMap.of("kudu.client.master-addresses",
                     "localhost:7051");
 
-            //Map<String, String> properties = ImmutableMap.of("kudu.client.master-addresses", "172.172.240.71:7051");
             queryRunner.installPlugin(new KuduPlugin());
             queryRunner.createCatalog("kudu", "kudu", properties);
 

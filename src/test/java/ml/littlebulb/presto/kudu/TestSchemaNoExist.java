@@ -7,16 +7,9 @@ import org.testng.annotations.Test;
 public class TestSchemaNoExist extends AbstractTestQueryFramework {
     private TestingKuduQueryRunner kuduQueryRunner;
 
-
-    public TestSchemaNoExist() {
-        super(TestingKuduQueryRunner::createKuduQueryRunner);
-    }
-
     private static final String SCHEMA_NAME = "test_presto_schema";
 
-    private static final String CREATE_SCHEMA = "create schema if not exists kudu." + SCHEMA_NAME;
     private static final String DROP_SCHEMA = "drop schema if exists kudu." + SCHEMA_NAME;
-
 
     private static final String CREATE_TABLE = "create table if not exists kudu." + SCHEMA_NAME + ".test_presto_table " +
             "(user_id int, user_name varchar) " +
@@ -25,7 +18,9 @@ public class TestSchemaNoExist extends AbstractTestQueryFramework {
             "num_replicas = 1)";
     private static final String DROP_TABLE = "drop table if exists kudu." + SCHEMA_NAME + ".test_presto_table";
 
-
+    public TestSchemaNoExist() {
+        super(TestingKuduQueryRunner::createKuduQueryRunner);
+    }
 
     @Test
     public void testCreateTableWithoutSchema() {
@@ -45,7 +40,6 @@ public class TestSchemaNoExist extends AbstractTestQueryFramework {
         kuduQueryRunner.execute(DROP_TABLE);
         kuduQueryRunner.execute(DROP_SCHEMA);
     }
-
 
     @BeforeClass
     public void setUp() {
