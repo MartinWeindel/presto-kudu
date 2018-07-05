@@ -56,6 +56,8 @@ public class TypeHelper {
             return org.apache.kudu.Type.DECIMAL;
         } else if (type == DateType.DATE) {
             return org.apache.kudu.Type.STRING;
+        } else if (type instanceof CharType) {
+            return org.apache.kudu.Type.STRING;
         } else {
             throw new IllegalStateException("Type mapping implemented for Presto type: " + type);
         }

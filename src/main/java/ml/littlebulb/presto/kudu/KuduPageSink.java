@@ -13,7 +13,6 @@ import com.google.common.collect.ImmutableList;
 import io.airlift.slice.Slice;
 import org.apache.kudu.client.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -28,6 +27,8 @@ import static com.facebook.presto.spi.type.BooleanType.BOOLEAN;
 import static com.facebook.presto.spi.type.DateType.DATE;
 import static com.facebook.presto.spi.type.DoubleType.DOUBLE;
 import static com.facebook.presto.spi.type.IntegerType.INTEGER;
+import static com.facebook.presto.spi.type.SmallintType.SMALLINT;
+import static com.facebook.presto.spi.type.TinyintType.TINYINT;
 import static com.facebook.presto.spi.type.RealType.REAL;
 import static com.facebook.presto.spi.type.TimestampType.TIMESTAMP;
 import static com.facebook.presto.spi.type.VarbinaryType.VARBINARY;
@@ -100,6 +101,10 @@ public class KuduPageSink implements ConnectorPageSink {
             row.addLong(destChannel, type.getLong(block, position));
         } else if (INTEGER.equals(type)) {
             row.addInt(destChannel, (int) type.getLong(block, position));
+        } else if (SMALLINT.equals(type)) {
+            row.addShort(destChannel, (short) type.getLong(block, position));
+        } else if (TINYINT.equals(type)) {
+            row.addByte(destChannel, (byte) type.getLong(block, position));
         } else if (BOOLEAN.equals(type)) {
             row.addBoolean(destChannel, type.getBoolean(block, position));
         } else if (DOUBLE.equals(type)) {

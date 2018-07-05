@@ -1,5 +1,7 @@
 package ml.littlebulb.presto.kudu;
 
+import com.facebook.presto.client.FailureInfo;
+import com.facebook.presto.spi.SchemaNotFoundException;
 import com.facebook.presto.tests.AbstractTestQueryFramework;
 import org.testng.Assert;
 import org.testng.annotations.*;
@@ -16,6 +18,7 @@ public class TestSchemaNoExist extends AbstractTestQueryFramework {
             "with(column_design = '{\"user_id\": {\"key\": true}}'," +
             "partition_design = '{\"hash\":[{\"columns\":[\"user_id\"], \"buckets\": 2}]}'," +
             "num_replicas = 1)";
+
     private static final String DROP_TABLE = "drop table if exists kudu." + SCHEMA_NAME + ".test_presto_table";
 
     public TestSchemaNoExist() {
@@ -24,21 +27,12 @@ public class TestSchemaNoExist extends AbstractTestQueryFramework {
 
     @Test
     public void testCreateTableWithoutSchema() {
-
-        String errorMessage="";
         try {
             kuduQueryRunner.execute(CREATE_TABLE);
+            Assert.fail();
         } catch (Exception e) {
-            errorMessage=e.getMessage();
+            Assert.assertEquals("Schema " + SCHEMA_NAME + " not found", e.getMessage());
         }
-        Assert.assertTrue(errorMessage.equals("schema is not exists:" + SCHEMA_NAME));
-
-    }
-
-    @AfterMethod
-    public void afterTest() {
-        kuduQueryRunner.execute(DROP_TABLE);
-        kuduQueryRunner.execute(DROP_SCHEMA);
     }
 
     @BeforeClass

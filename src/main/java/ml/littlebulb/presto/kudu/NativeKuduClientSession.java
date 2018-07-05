@@ -347,7 +347,7 @@ public class NativeKuduClientSession implements KuduClientSession {
                 }
             }
             if(!schemaExists(schemeTableName.getSchemaName())){
-                throw new PrestoException(GENERIC_INTERNAL_ERROR, "schema is not exists:" + schemeTableName.getSchemaName());
+                throw new SchemaNotFoundException(schemeTableName.getSchemaName());
             }
             List<ColumnMetadata> columns = tableMetadata.getColumns();
             Map<String, Object> properties = tableMetadata.getProperties();

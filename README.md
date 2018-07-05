@@ -141,7 +141,7 @@ The data types of Presto and Kudu are mapped as far as possible:
 | `VARBINARY` | `BINARY` | see note 1 |
 | `TIMESTAMP` | `UNIXTIME_MICROS` | µs resolution in Kudu column is reduced to ms resolution |
 | `DECIMAL` | `DECIMAL` | only supported for Kudu server >= 1.7.0 |
-| `CHAR` | - | not supported |
+| `CHAR` | - | not supported, see note 2 |
 | `DATE` | - | not supported, see note 2 |
 | `TIME` | - | not supported |
 | `JSON` | - | not supported |
@@ -159,7 +159,7 @@ the optional maximum length is lost
 
 #### Note 2
 On performing `CREATE TABLE ... AS ...` from a Presto table to Kudu, 
-a `DATE` column is converted to `STRING` 
+a `DATE` or `CHAR` column is converted to `STRING` 
 
 ## Supported Presto SQL statements
 | Presto SQL statement | Supported | Comment |
