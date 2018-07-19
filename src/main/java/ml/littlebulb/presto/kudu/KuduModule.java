@@ -22,7 +22,6 @@ import com.facebook.presto.spi.procedure.Procedure;
 import com.facebook.presto.spi.type.TypeManager;
 import com.google.inject.*;
 import com.google.inject.multibindings.Multibinder;
-import com.google.inject.multibindings.MultibindingsScanner;
 import com.google.inject.multibindings.ProvidesIntoSet;
 import ml.littlebulb.presto.kudu.procedures.RangePartitionProcedures;
 import ml.littlebulb.presto.kudu.properties.KuduTableProperties;
@@ -45,8 +44,6 @@ public class KuduModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        install(MultibindingsScanner.asModule());
-
         bind(TypeManager.class).toInstance(typeManager);
 
         bind(KuduConnector.class).in(Scopes.SINGLETON);
