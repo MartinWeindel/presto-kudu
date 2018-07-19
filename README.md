@@ -5,7 +5,7 @@ The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and
 
 | Version | Compatibility | Details       |
 | ------- | --------------| ------------- |
-| Apache Kudu 1.7.0 | yes | tests ok |
+| Apache Kudu 1.7.0/1.7.1 | yes | tests ok |
 | Apache Kudu 1.6.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
 | Apache Kudu 1.5.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
 | Apache Kudu 1.4.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
@@ -21,7 +21,7 @@ Please follow the below steps to query Apache Kudu in Presto.
 ### Deploying Kudu server
 Follow installation guide at [Apache Kudu](https://kudu.apache.org/).
 
-If you want to deploy Kudu 1.7.0 on RHE 7 or CentOS 7, you may also be
+If you want to deploy Kudu 1.7.1 on RHE 7 or CentOS 7, you may also be
 interessed in my binary build project [kudu-rpm](https://github.com/MartinWeindel/kudu-rpm/releases/tag/v1.7.0-1).
 
 ### Deploying Presto server
@@ -368,7 +368,7 @@ To run the build with tests, it is assumed that Kudu master server
 (and at least one Kudu tablet server) runs on localhost.
 If you have Docker installed on your machine, you can use following steps:
 ```bash
-docker run --rm -d --name apache-kudu --net=host usuresearch/kudu-docker-slim:release-v1.7.0-1
+docker run --rm -d --name apache-kudu --net=host usuresearch/kudu-docker-slim:release-v1.7.1-1
 mvn clean package
 docker stop apache-kudu
 ```
