@@ -6,7 +6,12 @@ import com.facebook.presto.spi.UpdatablePageSource;
 import com.facebook.presto.spi.block.Block;
 import io.airlift.slice.Slice;
 import org.apache.kudu.Schema;
-import org.apache.kudu.client.*;
+import org.apache.kudu.client.Delete;
+import org.apache.kudu.client.KeyEncoderAccessor;
+import org.apache.kudu.client.KuduException;
+import org.apache.kudu.client.KuduSession;
+import org.apache.kudu.client.KuduTable;
+import org.apache.kudu.client.PartialRow;
 import org.apache.kudu.client.SessionConfiguration.FlushMode;
 
 import java.io.IOException;

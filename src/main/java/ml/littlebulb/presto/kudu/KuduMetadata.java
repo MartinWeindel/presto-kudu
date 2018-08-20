@@ -17,26 +17,45 @@
 
 package ml.littlebulb.presto.kudu;
 
-import com.facebook.presto.spi.*;
+import com.facebook.presto.spi.ColumnHandle;
+import com.facebook.presto.spi.ColumnMetadata;
+import com.facebook.presto.spi.ConnectorInsertTableHandle;
+import com.facebook.presto.spi.ConnectorNewTableLayout;
+import com.facebook.presto.spi.ConnectorOutputTableHandle;
+import com.facebook.presto.spi.ConnectorSession;
+import com.facebook.presto.spi.ConnectorTableHandle;
+import com.facebook.presto.spi.ConnectorTableLayout;
+import com.facebook.presto.spi.ConnectorTableLayoutHandle;
+import com.facebook.presto.spi.ConnectorTableLayoutResult;
+import com.facebook.presto.spi.ConnectorTableMetadata;
+import com.facebook.presto.spi.Constraint;
+import com.facebook.presto.spi.SchemaTableName;
+import com.facebook.presto.spi.SchemaTablePrefix;
 import com.facebook.presto.spi.connector.ConnectorMetadata;
-import com.facebook.presto.spi.connector.ConnectorOutputMetadata;
 import com.facebook.presto.spi.type.Type;
 import com.facebook.presto.spi.type.VarbinaryType;
 import com.facebook.presto.spi.type.VarcharType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import ml.littlebulb.presto.kudu.properties.KuduTableProperties;
 import io.airlift.slice.Slice;
+import ml.littlebulb.presto.kudu.properties.KuduTableProperties;
 import org.apache.kudu.ColumnSchema;
 import org.apache.kudu.Schema;
 import org.apache.kudu.client.KuduTable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 import javax.inject.Inject;
-import java.util.*;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static ml.littlebulb.presto.kudu.Types.checkType;
 import static java.util.Objects.requireNonNull;
+import static ml.littlebulb.presto.kudu.Types.checkType;
 
 public class KuduMetadata implements ConnectorMetadata {
     private final String connectorId;
@@ -65,7 +84,7 @@ public class KuduMetadata implements ConnectorMetadata {
 
         List<SchemaTableName> tables;
         if (prefix.getSchemaName() == null) {
-            tables = listTables(session, null);
+            tables = listTables(session, Optional.empty());
         } else if (prefix.getTableName() == null) {
             tables = listTables(session, prefix.getSchemaName());
         } else {
@@ -158,7 +177,8 @@ public class KuduMetadata implements ConnectorMetadata {
 
     @Override
     public List<ConnectorTableLayoutResult> getTableLayouts(ConnectorSession session,
-                                                            ConnectorTableHandle tableHandle, Constraint<ColumnHandle> constraint,
+                                                            ConnectorTableHandle tableHandle,
+                                                            Constraint<ColumnHandle> constraint,
                                                             Optional<Set<ColumnHandle>> desiredColumns) {
         KuduTableHandle handle = fromConnectorTableHandle(session, tableHandle);
         ConnectorTableLayout layout = new ConnectorTableLayout(
@@ -176,7 +196,8 @@ public class KuduMetadata implements ConnectorMetadata {
         return getTableMetadataInternal(session, tableHandle);
     }
 
-    private ConnectorTableMetadata getTableMetadataInternal(ConnectorSession session, ConnectorTableHandle tableHandle) {
+    private ConnectorTableMetadata getTableMetadataInternal(ConnectorSession session,
+                                                            ConnectorTableHandle tableHandle) {
         KuduTableHandle kuduTableHandle = fromConnectorTableHandle(session, tableHandle);
         return getTableMetadata(kuduTableHandle);
     }
@@ -222,7 +243,8 @@ public class KuduMetadata implements ConnectorMetadata {
     }
 
     @Override
-    public void renameColumn(ConnectorSession session, ConnectorTableHandle tableHandle, ColumnHandle source, String target) {
+    public void renameColumn(ConnectorSession session, ConnectorTableHandle tableHandle, ColumnHandle source,
+                             String target) {
         KuduTableHandle kuduTableHandle = fromConnectorTableHandle(session, tableHandle);
         KuduColumnHandle kuduColumnHandle = (KuduColumnHandle) source;
         clientSession.renameColumn(kuduTableHandle.getSchemaTableName(), kuduColumnHandle.getName(), target);
@@ -249,13 +271,6 @@ public class KuduMetadata implements ConnectorMetadata {
     }
 
     @Override
-    public Optional<ConnectorOutputMetadata> finishInsert(ConnectorSession session,
-                                                          ConnectorInsertTableHandle insertHandle,
-                                                          Collection<Slice> fragments) {
-        return Optional.empty();
-    }
-
-    @Override
     public ConnectorOutputTableHandle beginCreateTable(ConnectorSession session, ConnectorTableMetadata tableMetadata,
                                                        Optional<ConnectorNewTableLayout> layout) {
         boolean generateUUID = !tableMetadata.getProperties().containsKey(KuduTableProperties.PARTITION_DESIGN);
@@ -267,7 +282,8 @@ public class KuduMetadata implements ConnectorMetadata {
             List<ColumnMetadata> finalColumns = ImmutableList.copyOf(copy);
             Map<String, Object> propsCopy = new HashMap<>(tableMetadata.getProperties());
             propsCopy.put(KuduTableProperties.COLUMN_DESIGN, "{\"" + rowId + "\": {\"key\": true}}");
-            propsCopy.put(KuduTableProperties.PARTITION_DESIGN, "{\"hash\": [{\"columns\": [\"" + rowId + "\"], \"buckets\": 2}]}");
+            propsCopy.put(KuduTableProperties.PARTITION_DESIGN, "{\"hash\": [{\"columns\": [\"" + rowId + "\"], " +
+                    "\"buckets\": 2}]}");
             propsCopy.put(KuduTableProperties.NUM_REPLICAS, 1);
             Map<String, Object> finalProperties = ImmutableMap.copyOf(propsCopy);
             finalTableMetadata = new ConnectorTableMetadata(tableMetadata.getTable(),
@@ -295,21 +311,13 @@ public class KuduMetadata implements ConnectorMetadata {
     }
 
     @Override
-    public Optional<ConnectorOutputMetadata> finishCreateTable(ConnectorSession session,
-                                                               ConnectorOutputTableHandle tableHandle,
-                                                               Collection<Slice> fragments) {
-        return Optional.empty();
-    }
-
-    @Override
     public ColumnHandle getUpdateRowIdColumnHandle(ConnectorSession session, ConnectorTableHandle tableHandle) {
         return KuduColumnHandle.ROW_ID_HANDLE;
     }
 
     @Override
     public ConnectorTableHandle beginDelete(ConnectorSession session, ConnectorTableHandle tableHandle) {
-        KuduTableHandle kuduTableHandle = fromConnectorTableHandle(session, tableHandle);
-        return kuduTableHandle;
+        return fromConnectorTableHandle(session, tableHandle);
     }
 
     @Override
@@ -317,20 +325,10 @@ public class KuduMetadata implements ConnectorMetadata {
     }
 
     @Override
-    public boolean supportsMetadataDelete(ConnectorSession session, ConnectorTableHandle tableHandle, ConnectorTableLayoutHandle tableLayoutHandle) {
+    public boolean supportsMetadataDelete(ConnectorSession session, ConnectorTableHandle tableHandle,
+                                          ConnectorTableLayoutHandle tableLayoutHandle) {
         return false;
     }
 
-    @Override
-    public TableIdentity getTableIdentity(ConnectorTableHandle tableHandle) {
-        KuduTableHandle kuduTableHandle = checkType(tableHandle, KuduTableHandle.class, "tableHandle");
-        String tableId = kuduTableHandle.getTable(clientSession).getTableId();
-        return new KuduTableIdentity(tableId);
-    }
-
-    @Override
-    public TableIdentity deserializeTableIdentity(byte[] bytes) {
-        return KuduTableIdentity.deserialize(bytes);
-    }
 
 }

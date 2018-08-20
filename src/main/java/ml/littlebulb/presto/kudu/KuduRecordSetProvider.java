@@ -24,11 +24,12 @@ import com.facebook.presto.spi.RecordSet;
 import com.facebook.presto.spi.connector.ConnectorRecordSetProvider;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 
-import javax.inject.Inject;
 import java.util.List;
 
-import static ml.littlebulb.presto.kudu.Types.checkType;
+import javax.inject.Inject;
+
 import static java.util.Objects.requireNonNull;
+import static ml.littlebulb.presto.kudu.Types.checkType;
 
 public class KuduRecordSetProvider implements ConnectorRecordSetProvider {
 

@@ -1,22 +1,18 @@
 package ml.littlebulb.presto.kudu.procedures;
 
 import com.facebook.presto.spi.SchemaTableName;
-import com.facebook.presto.spi.block.Block;
 import com.facebook.presto.spi.procedure.Procedure;
 import com.facebook.presto.spi.procedure.Procedure.Argument;
 import com.google.common.collect.ImmutableList;
 import ml.littlebulb.presto.kudu.KuduClientSession;
 import ml.littlebulb.presto.kudu.properties.KuduTableProperties;
-import ml.littlebulb.presto.kudu.properties.RangeBoundValue;
 import ml.littlebulb.presto.kudu.properties.RangePartition;
-import org.apache.kudu.client.PartialRow;
-
-import javax.inject.Inject;
 
 import java.lang.invoke.MethodHandle;
 
+import javax.inject.Inject;
+
 import static com.facebook.presto.spi.block.MethodHandleUtil.methodHandle;
-import static com.facebook.presto.spi.type.StandardTypes.ROW;
 import static com.facebook.presto.spi.type.StandardTypes.VARCHAR;
 import static java.util.Objects.requireNonNull;
 
