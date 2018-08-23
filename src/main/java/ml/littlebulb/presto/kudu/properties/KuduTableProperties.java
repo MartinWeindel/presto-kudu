@@ -20,7 +20,12 @@ import com.google.common.collect.ImmutableList;
 import org.apache.kudu.ColumnSchema;
 import org.apache.kudu.Schema;
 import org.apache.kudu.Type;
-import org.apache.kudu.client.*;
+import org.apache.kudu.client.KeyEncoderAccessor;
+import org.apache.kudu.client.KuduTable;
+import org.apache.kudu.client.LocatedTablet;
+import org.apache.kudu.client.PartialRow;
+import org.apache.kudu.client.Partition;
+import org.apache.kudu.client.PartitionSchema;
 import org.apache.kudu.shaded.com.google.common.base.Predicates;
 import org.apache.kudu.shaded.com.google.common.collect.Iterators;
 import org.joda.time.DateTimeZone;
@@ -28,10 +33,17 @@ import org.joda.time.format.ISODateTimeFormat;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import static com.facebook.presto.spi.session.PropertyMetadata.integerSessionProperty;
-import static com.facebook.presto.spi.session.PropertyMetadata.stringSessionProperty;
+import static com.facebook.presto.spi.session.PropertyMetadata.integerProperty;
+import static com.facebook.presto.spi.session.PropertyMetadata.stringProperty;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Objects.requireNonNull;
 
@@ -70,25 +82,25 @@ public final class KuduTableProperties {
 
 
     public KuduTableProperties() {
-        PropertyMetadata<String> s1 = stringSessionProperty(
+        PropertyMetadata<String> s1 = stringProperty(
                 COLUMN_DESIGN,
                 "Kudu-specific column design (key, encoding, and compression) as JSON, like {\"column1\": {\"key\": true, \"encoding\": \"dictionary\", \"compression\": \"LZ4\"}, \"column2\": {...}}",
                 null,
                 false);
 
-        PropertyMetadata<String> s2 = stringSessionProperty(
+        PropertyMetadata<String> s2 = stringProperty(
                 PARTITION_DESIGN,
                 "Partition design (hash partition(s) and/or range partition) as JSON.",
                 null,
                 false);
 
-        PropertyMetadata<Integer> s3 = integerSessionProperty(
+        PropertyMetadata<Integer> s3 = integerProperty(
                 NUM_REPLICAS,
                 "Number of tablet replicas. Default 3.",
                 3,
                 false);
 
-        PropertyMetadata<String> s4 = stringSessionProperty(
+        PropertyMetadata<String> s4 = stringProperty(
                 RANGE_PARTITIONS,
                 "Initial range partitions as JSON",
                 null,

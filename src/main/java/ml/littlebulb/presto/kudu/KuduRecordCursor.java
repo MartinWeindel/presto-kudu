@@ -21,7 +21,6 @@ import com.facebook.presto.spi.RecordCursor;
 import com.facebook.presto.spi.type.Type;
 import io.airlift.log.Logger;
 import io.airlift.slice.Slice;
-import io.airlift.slice.Slices;
 import org.apache.kudu.client.KuduException;
 import org.apache.kudu.client.KuduScanner;
 import org.apache.kudu.client.RowResult;
@@ -29,8 +28,6 @@ import org.apache.kudu.client.RowResultIterator;
 
 import java.lang.reflect.Field;
 import java.util.List;
-
-import static java.lang.Float.floatToRawIntBits;
 
 public class KuduRecordCursor implements RecordCursor {
 
