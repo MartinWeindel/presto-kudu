@@ -3,13 +3,13 @@ package ml.littlebulb.presto.kudu;
 import com.facebook.presto.spi.type.VarcharType;
 import com.facebook.presto.testing.MaterializedResult;
 import com.facebook.presto.testing.MaterializedRow;
+import com.facebook.presto.testing.QueryRunner;
 import com.facebook.presto.tests.AbstractTestIntegrationSmokeTest;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static ml.littlebulb.presto.kudu.TpchKuduQueryRunner.createKuduQueryRunner;
 import static io.airlift.tpch.TpchTable.ORDERS;
 
 /**
@@ -19,15 +19,17 @@ import static io.airlift.tpch.TpchTable.ORDERS;
  *   "docker run --rm -d --name apache-kudu --net=host usuresearch/kudu-docker-slim:release-v1.6.0-2"
  */
 public class TestKuduIntegrationSmokeTest extends AbstractTestIntegrationSmokeTest {
-    private TpchKuduQueryRunner kuduQueryRunner;
+    public static final String SCHEMA = "tpch";
+
+    private QueryRunner queryRunner;
 
     public TestKuduIntegrationSmokeTest() {
-        super(() -> createKuduQueryRunner(ORDERS));
+        super(() -> KuduQueryRunnerFactory.createKuduQueryRunnerTpch(ORDERS));
     }
 
     @BeforeClass
     public void setUp() {
-        kuduQueryRunner = (TpchKuduQueryRunner) getQueryRunner();
+        queryRunner = getQueryRunner();
     }
 
     /**
@@ -59,7 +61,9 @@ public class TestKuduIntegrationSmokeTest extends AbstractTestIntegrationSmokeTe
 
     @AfterClass(alwaysRun = true)
     public final void destroy() {
-        kuduQueryRunner.shutdown();
-        kuduQueryRunner = null;
+        if (queryRunner != null) {
+            queryRunner.close();
+            queryRunner = null;
+        }
     }
 }

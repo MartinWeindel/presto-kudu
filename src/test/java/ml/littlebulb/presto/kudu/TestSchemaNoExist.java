@@ -1,13 +1,13 @@
 package ml.littlebulb.presto.kudu;
 
-import com.facebook.presto.client.FailureInfo;
-import com.facebook.presto.spi.SchemaNotFoundException;
+import com.facebook.presto.testing.QueryRunner;
 import com.facebook.presto.tests.AbstractTestQueryFramework;
 import org.testng.Assert;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 public class TestSchemaNoExist extends AbstractTestQueryFramework {
-    private TestingKuduQueryRunner kuduQueryRunner;
+    private QueryRunner queryRunner;
 
     private static final String SCHEMA_NAME = "test_presto_schema";
 
@@ -22,13 +22,13 @@ public class TestSchemaNoExist extends AbstractTestQueryFramework {
     private static final String DROP_TABLE = "drop table if exists kudu." + SCHEMA_NAME + ".test_presto_table";
 
     public TestSchemaNoExist() {
-        super(TestingKuduQueryRunner::createKuduQueryRunner);
+        super(() -> KuduQueryRunnerFactory.createKuduQueryRunner("test_dummy"));
     }
 
     @Test
     public void testCreateTableWithoutSchema() {
         try {
-            kuduQueryRunner.execute(CREATE_TABLE);
+            queryRunner.execute(CREATE_TABLE);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("Schema " + SCHEMA_NAME + " not found", e.getMessage());
@@ -37,14 +37,14 @@ public class TestSchemaNoExist extends AbstractTestQueryFramework {
 
     @BeforeClass
     public void setUp() {
-        kuduQueryRunner = (TestingKuduQueryRunner) getQueryRunner();
+        queryRunner = getQueryRunner();
     }
 
     @AfterClass(alwaysRun = true)
     public final void destroy() {
-        kuduQueryRunner.execute(DROP_TABLE);
-        kuduQueryRunner.execute(DROP_SCHEMA);
-        kuduQueryRunner.shutdown();
-        kuduQueryRunner = null;
+        queryRunner.execute(DROP_TABLE);
+        queryRunner.execute(DROP_SCHEMA);
+        queryRunner.close();
+        queryRunner = null;
     }
 }

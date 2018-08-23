@@ -1,13 +1,12 @@
 package ml.littlebulb.presto.kudu;
 
 import com.facebook.presto.testing.MaterializedResult;
+import com.facebook.presto.testing.QueryRunner;
 import com.facebook.presto.tests.AbstractTestQueryFramework;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import java.math.BigDecimal;
 
 class TestDec {
     final int precision;
@@ -20,7 +19,7 @@ class TestDec {
 }
 
 public class TestDecimalColumnsTest extends AbstractTestQueryFramework {
-    private TestingKuduQueryRunner kuduQueryRunner;
+    private QueryRunner queryRunner;
 
     static final TestDec[] testDecList = {
             new TestDec(10,0),
@@ -35,7 +34,7 @@ public class TestDecimalColumnsTest extends AbstractTestQueryFramework {
 
 
     public TestDecimalColumnsTest() throws Exception {
-        super(() -> TestingKuduQueryRunner.createKuduQueryRunner());
+        super(() -> KuduQueryRunnerFactory.createKuduQueryRunner("decimal"));
     }
 
     @Test
@@ -57,16 +56,16 @@ public class TestDecimalColumnsTest extends AbstractTestQueryFramework {
                         " num_replicas = 1\n" +
                         ")";
 
-        kuduQueryRunner.execute(dropTable);
-        kuduQueryRunner.execute(createTable);
+        queryRunner.execute(dropTable);
+        queryRunner.execute(createTable);
 
         String fullPrecisionValue = "1234567890.1234567890123456789012345678";
         int maxScale = dec.precision - 10;
         int valuePrecision = dec.precision - maxScale + Math.min(maxScale, dec.scale);
         String insertValue = fullPrecisionValue.substring(0, valuePrecision + 1);
-        kuduQueryRunner.execute("INSERT INTO test_dec VALUES(1, DECIMAL '" + insertValue + "')");
+        queryRunner.execute("INSERT INTO test_dec VALUES(1, DECIMAL '" + insertValue + "')");
 
-        MaterializedResult result = kuduQueryRunner.execute("SELECT id, CAST((dec - (DECIMAL '" + insertValue + "')) as DOUBLE) FROM test_dec");
+        MaterializedResult result = queryRunner.execute("SELECT id, CAST((dec - (DECIMAL '" + insertValue + "')) as DOUBLE) FROM test_dec");
         Assert.assertEquals(result.getRowCount(), 1);
         Object obj = result.getMaterializedRows().get(0).getField(1);
         Assert.assertTrue(obj instanceof Double);
@@ -76,12 +75,14 @@ public class TestDecimalColumnsTest extends AbstractTestQueryFramework {
 
     @BeforeClass
     public void setUp() {
-        kuduQueryRunner = (TestingKuduQueryRunner) getQueryRunner();
+        queryRunner = getQueryRunner();
     }
 
     @AfterClass(alwaysRun = true)
     public final void destroy() {
-        kuduQueryRunner.shutdown();
-        kuduQueryRunner = null;
+        if (queryRunner != null) {
+            queryRunner.close();
+            queryRunner = null;
+        }
     }
 }

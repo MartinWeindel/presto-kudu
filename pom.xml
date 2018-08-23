@@ -28,9 +28,9 @@
   <properties>
     <presto.version>0.208</presto.version>
     <kudu.version>1.7.1</kudu.version>
-    <dep.airlift.version>0.171</dep.airlift.version>
+    <dep.airlift.version>0.172</dep.airlift.version>
     <dep.testng.version>6.10</dep.testng.version>
-    <dep.slice.version>0.35</dep.slice.version>
+    <dep.slice.version>0.36</dep.slice.version>
     <dep.guice.version>4.2.0</dep.guice.version>
     <dep.guava.version>24.1-jre</dep.guava.version>
   </properties>

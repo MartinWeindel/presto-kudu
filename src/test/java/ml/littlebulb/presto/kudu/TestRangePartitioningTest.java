@@ -1,13 +1,12 @@
 package ml.littlebulb.presto.kudu;
 
 import com.facebook.presto.testing.MaterializedResult;
+import com.facebook.presto.testing.QueryRunner;
 import com.facebook.presto.tests.AbstractTestQueryFramework;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import java.util.Arrays;
 
 class TestRanges {
     final String[] types;
@@ -42,7 +41,7 @@ class TestRanges {
 }
 
 public class TestRangePartitioningTest extends AbstractTestQueryFramework {
-    private TestingKuduQueryRunner kuduQueryRunner;
+    private QueryRunner queryRunner;
 
     static final TestRanges[] testRangesList = {
             new TestRanges("varchar",
@@ -100,8 +99,8 @@ public class TestRangePartitioningTest extends AbstractTestQueryFramework {
     };
 
 
-    public TestRangePartitioningTest() throws Exception {
-        super(() -> TestingKuduQueryRunner.createKuduQueryRunner());
+    public TestRangePartitioningTest() {
+        super(() -> KuduQueryRunnerFactory.createKuduQueryRunner("range_partitioning"));
     }
 
     @Test
@@ -144,18 +143,18 @@ public class TestRangePartitioningTest extends AbstractTestQueryFramework {
                         " range_partitions = '[" + ranges.range1 + "," + ranges.range2 + "]',\n" +
                         " num_replicas = 1\n" +
                         ")";
-        kuduQueryRunner.execute(createTable);
+        queryRunner.execute(createTable);
 
-        String schema = TestingKuduQueryRunner.TESTING_SCHEMA;
+        String schema = queryRunner.getDefaultSession().getSchema().get();
         String addPartition3 = "CALL kudu.system.add_range_partition('" + schema + "','" + tableName + "','" + ranges.range3 + "')";
-        kuduQueryRunner.execute(addPartition3);
+        queryRunner.execute(addPartition3);
         String addPartition4 = "CALL kudu.system.add_range_partition('" + schema + "','" + tableName + "','" + ranges.range4 + "')";
-        kuduQueryRunner.execute(addPartition4);
+        queryRunner.execute(addPartition4);
 
         String dropPartition3 = addPartition3.replace(".add_range_partition(", ".drop_range_partition(");
-        kuduQueryRunner.execute(dropPartition3);
+        queryRunner.execute(dropPartition3);
 
-        MaterializedResult result = kuduQueryRunner.execute("SHOW CREATE TABLE " + tableName);
+        MaterializedResult result = queryRunner.execute("SHOW CREATE TABLE " + tableName);
         Assert.assertEquals(result.getRowCount(), 1);
         String createSQL = result.getMaterializedRows().get(0).getField(0).toString();
         String rangesArray = "'[" + ranges.cmp1 + "," + ranges.cmp2 + "," + ranges.cmp4 + "]'";
@@ -166,12 +165,14 @@ public class TestRangePartitioningTest extends AbstractTestQueryFramework {
 
     @BeforeClass
     public void setUp() {
-        kuduQueryRunner = (TestingKuduQueryRunner) getQueryRunner();
+        queryRunner = getQueryRunner();
     }
 
     @AfterClass(alwaysRun = true)
     public final void destroy() {
-        kuduQueryRunner.shutdown();
-        kuduQueryRunner = null;
+        if (queryRunner != null) {
+            queryRunner.close();
+            queryRunner = null;
+        }
     }
 }

@@ -1,6 +1,7 @@
 package ml.littlebulb.presto.kudu;
 
 import com.facebook.presto.testing.MaterializedResult;
+import com.facebook.presto.testing.QueryRunner;
 import com.facebook.presto.tests.AbstractTestQueryFramework;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -18,7 +19,7 @@ class TestInt {
 }
 
 public class TestIntegerColumnsTest extends AbstractTestQueryFramework {
-    private TestingKuduQueryRunner kuduQueryRunner;
+    private QueryRunner queryRunner;
 
     static final TestInt[] testList = {
             new TestInt("TINYINT", 8),
@@ -29,7 +30,7 @@ public class TestIntegerColumnsTest extends AbstractTestQueryFramework {
 
 
     public TestIntegerColumnsTest() throws Exception {
-        super(TestingKuduQueryRunner::createKuduQueryRunner);
+        super(() -> KuduQueryRunnerFactory.createKuduQueryRunner("test_integer"));
     }
 
     @Test
@@ -51,14 +52,14 @@ public class TestIntegerColumnsTest extends AbstractTestQueryFramework {
                         " num_replicas = 1\n" +
                         ")";
 
-        kuduQueryRunner.execute(dropTable);
-        kuduQueryRunner.execute(createTable);
+        queryRunner.execute(dropTable);
+        queryRunner.execute(createTable);
 
         long maxValue = Long.MAX_VALUE;
         long casted = maxValue >> (64 - test.bits);
-        kuduQueryRunner.execute("INSERT INTO test_int VALUES(1, CAST("  + casted + " AS " + test.type + "))");
+        queryRunner.execute("INSERT INTO test_int VALUES(1, CAST("  + casted + " AS " + test.type + "))");
 
-        MaterializedResult result = kuduQueryRunner.execute("SELECT id, intcol FROM test_int");
+        MaterializedResult result = queryRunner.execute("SELECT id, intcol FROM test_int");
         Assert.assertEquals(result.getRowCount(), 1);
         Object obj = result.getMaterializedRows().get(0).getField(1);
         switch (test.bits) {
@@ -86,12 +87,14 @@ public class TestIntegerColumnsTest extends AbstractTestQueryFramework {
 
     @BeforeClass
     public void setUp() {
-        kuduQueryRunner = (TestingKuduQueryRunner) getQueryRunner();
+        queryRunner = getQueryRunner();
     }
 
     @AfterClass(alwaysRun = true)
     public final void destroy() {
-        kuduQueryRunner.shutdown();
-        kuduQueryRunner = null;
+        if (queryRunner != null) {
+            queryRunner.close();
+            queryRunner = null;
+        }
     }
 }
