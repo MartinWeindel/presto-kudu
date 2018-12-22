@@ -1,14 +1,40 @@
 # Presto-Kudu
 The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and deleting data in [Apache Kudu](https://kudu.apache.org/) 
 
+## Integration into PrestoDB distribution
+
+Starting with Presto 0.209 the presto-kudu connector is integrated into the Presto distribution.
+Syntax for creating tables has changed, but the functionality is the same.
+Please see [Presto Documentation / Kudu Connector](https://prestodb.io/docs/current/connector/kudu.html) for more details.
+
+### Migration
+
+If you want to migrate from Presto <= 0.208 with this Kudu connector to a newer Presto version with the integrated Kudu connector,
+perform following steps:
+
+- Stop Presto 0.208
+
+- Delete the table `$schemas` from Kudu using the Java or Python Kudu client.
+  This table will be recreated automatically.
+
+- If you want to continue using the schema emulation used in this old connector,
+  set following property in the `kudu.properties`:
+  
+  ```conf
+  kudu.schema-emulation.prefix=
+  ```
+    
+- Start Presto >= 0.209
+
 ## Compatibility
 
 | Version | Compatibility | Details       |
 | ------- | --------------| ------------- |
-| Apache Kudu 1.7.0/1.7.1 | yes | tests ok |
-| Apache Kudu 1.6.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
-| Apache Kudu 1.5.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
-| Apache Kudu 1.4.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.7.0 |
+| Apache Kudu 1.8.0 | yes | tests ok |
+| Apache Kudu 1.7.0/1.7.1 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.8.0 |
+| Apache Kudu 1.6.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.8.0 |
+| Apache Kudu 1.5.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.8.0 |
+| Apache Kudu 1.4.0 | yes | by full API- and ABI-compatibility of Kudu Java Client 1.8.0 |
 |  |  | | |
 | Presto 0.208 | yes | tests ok |
 
@@ -21,8 +47,8 @@ Please follow the below steps to query Apache Kudu in Presto.
 ### Deploying Kudu server
 Follow installation guide at [Apache Kudu](https://kudu.apache.org/).
 
-If you want to deploy Kudu 1.7.1 on RHE 7 or CentOS 7, you may also be
-interessed in my binary build project [kudu-rpm](https://github.com/MartinWeindel/kudu-rpm/releases/tag/v1.7.0-1).
+If you want to deploy Kudu 1.8.0 on RHE 7 or CentOS 7, you may also be
+interessed in my binary build project [kudu-rpm](https://github.com/MartinWeindel/kudu-rpm/releases/tag/v1.8.0-1).
 
 ### Deploying Presto server
 Install Presto according to the documentation: https://prestodb.io/docs/current/installation/deployment.html
@@ -190,7 +216,7 @@ Currently not supported are `SHOW PARTITIONS FROM ...`, `ALTER SCHEMA ... RENAME
 ## Create Kudu Table with `CREATE TABLE`
 On creating a Kudu Table you need to provide following table properties:
 - `column_design`
-- `partition_design`
+- `partition_design` (optional)
 - `num_replicas` (optional, defaults to 3)
 
 Example:
@@ -368,7 +394,7 @@ To run the build with tests, it is assumed that Kudu master server
 (and at least one Kudu tablet server) runs on localhost.
 If you have Docker installed on your machine, you can use following steps:
 ```bash
-docker run --rm -d --name apache-kudu --net=host usuresearch/kudu-docker-slim:release-v1.7.1-1
+docker run --rm -d --name apache-kudu --net=host usuresearch/kudu-docker-slim:release-v1.8.0-1
 mvn clean package
 docker stop apache-kudu
 ```

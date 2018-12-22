@@ -138,16 +138,21 @@ public final class KuduTableProperties {
         }
     }
 
-    public static Optional<PartitionDesign> getPartitionDesign(Map<String, Object> tableProperties) {
+    public static Optional<PartitionDesign> getPartitionDesign(Map<String, Object> tableProperties)
+    {
         requireNonNull(tableProperties);
 
-        @SuppressWarnings("unchecked")
         String json = (String) tableProperties.get(PARTITION_DESIGN);
-        try {
-            PartitionDesign design = mapper.readValue(json, PartitionDesign.class);
-            return Optional.of(design);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (json != null) {
+            try {
+                PartitionDesign design = mapper.readValue(json, PartitionDesign.class);
+                return Optional.of(design);
+            }
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            return Optional.empty();
         }
     }
 
@@ -211,7 +216,7 @@ public final class KuduTableProperties {
             String partitionRangesValue = mapper.writeValueAsString(rangePartitionList);
             properties.put(RANGE_PARTITIONS, partitionRangesValue);
 
-            // currently no access to numReplicas?
+            properties.put(NUM_REPLICAS, table.getNumReplicas());
 
             return properties;
         } catch (IOException e) {

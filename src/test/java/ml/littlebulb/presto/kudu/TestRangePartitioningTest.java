@@ -161,6 +161,8 @@ public class TestRangePartitioningTest extends AbstractTestQueryFramework {
         rangesArray = rangesArray.replaceAll("\\s+", "");
         String expectedRanges = "range_partitions = " + rangesArray;
         Assert.assertTrue(createSQL.contains(expectedRanges), createSQL + "\ncontains\n" + expectedRanges);
+        String expectedNumReplicas = "num_replicas = 1,";
+        Assert.assertTrue(createSQL.contains(expectedNumReplicas), createSQL + "\ncontains\n" + expectedNumReplicas);
     }
 
     @BeforeClass
