@@ -48,7 +48,6 @@ public class TestIntegerColumnsTest extends AbstractTestQueryFramework {
         createTable += "  intcol " + test.type + "\n";
         createTable += ") WITH (\n" +
                         " column_design = '{\"id\": {\"key\": true}}',\n" +
-                        " partition_design = '{\"hash\":[{\"columns\":[\"id\"], \"buckets\": 2}]}',\n" +
                         " num_replicas = 1\n" +
                         ")";
 

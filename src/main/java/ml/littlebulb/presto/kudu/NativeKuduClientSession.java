@@ -49,6 +49,7 @@ import org.apache.kudu.client.Upsert;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -553,6 +554,9 @@ public class NativeKuduClientSession implements KuduClientSession {
                 rangePartitionDefinition = partitionDesign.getRange();
                 options.setRangePartitionColumns(rangePartitionDefinition.getColumns());
             }
+        } else {
+            String firstColumn = schema.getColumnByIndex(0).getName();
+            options.setRangePartitionColumns(Collections.singletonList(firstColumn));
         }
 
         List<RangePartition> rangePartitions = KuduTableProperties.getRangePartitions(properties);
