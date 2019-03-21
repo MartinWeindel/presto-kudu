@@ -1,11 +1,11 @@
 # Presto-Kudu
-The [Presto](https://prestodb.io/) Kudu connector allows querying, inserting and deleting data in [Apache Kudu](https://kudu.apache.org/) 
+The [Presto](https://prestosql.io/) Kudu connector allows querying, inserting and deleting data in [Apache Kudu](https://kudu.apache.org/) 
 
 ## Integration into PrestoDB distribution
 
 Starting with Presto 0.209 the presto-kudu connector is integrated into the Presto distribution.
 Syntax for creating tables has changed, but the functionality is the same.
-Please see [Presto Documentation / Kudu Connector](https://prestodb.io/docs/current/connector/kudu.html) for more details.
+Please see [Presto Documentation / Kudu Connector](https://prestosql.io/docs/current/connector/kudu.html) for more details.
 
 ### Migration
 
@@ -51,7 +51,7 @@ If you want to deploy Kudu 1.8.0 on RHE 7 or CentOS 7, you may also be
 interessed in my binary build project [kudu-rpm](https://github.com/MartinWeindel/kudu-rpm/releases/tag/v1.8.0-1).
 
 ### Deploying Presto server
-Install Presto according to the documentation: https://prestodb.io/docs/current/installation/deployment.html
+Install Presto according to the documentation: https://prestosql.io/docs/current/installation/deployment.html
 
 ### Download Presto-Kudu connector
 [Download current release](https://github.com/MartinWeindel/presto-kudu/wiki/Download)
@@ -93,7 +93,7 @@ Install Presto according to the documentation: https://prestodb.io/docs/current/
   
 
 ### Query kudu in CLI of presto
-* Download presto cli client following: https://prestodb.io/docs/current/installation/cli.html
+* Download presto cli client following: https://prestosql.io/docs/current/installation/cli.html
 
 * Start CLI:
   
